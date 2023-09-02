@@ -1,0 +1,213 @@
+import torch
+
+
+def update_nets_vgg(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
+    local_model = [{} for i in range(10)]
+    recv_models = [[] for i in range(10)]
+    for n in range(10):
+        local_model[n] = net[n].classifier[6].state_dict()
+        nbr = contact[str(n)]  # the nodes n-th node contacted
+        recv_models[n] = []
+        for k in nbr:
+            recv_models[n].append(net[k].classifier[6].state_dict())
+
+    # mixture of models
+    for n in range(10):
+        update_model = recv_models[n]
+        n_nbr = len(update_model)  # how many nodes n-th node contacted
+
+        # put difference of n-th node models and k-th conducted node to n-th into update_model[k]
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                update_model[k][key] = recv_models[n][k][key] - local_model[n][key]
+
+        # mix to local model
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                if local_model[n][key].dtype is torch.float32:
+                    local_model[n][key] += (
+                        update_model[k][key] * fl_coefficiency / float(n_nbr + 1)
+                    )
+                elif local_model[n][key].dtype is torch.int64:
+                    pass
+                else:
+                    print(
+                        key,
+                        type(fl_coefficiency),
+                        type(n_nbr),
+                        local_model[n][key].dtype,
+                        update_model[k][key].dtype,
+                    )
+                    exit(1)
+    # update nets
+    for n in range(10):
+        nbr = contact[str(n)]
+        if len(nbr) > 0:
+            net[n].classifier[6].load_state_dict(local_model[n])
+
+
+def update_nets_res(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
+    local_model = [{} for i in range(10)]
+    recv_models = [[] for i in range(10)]
+    for n in range(10):
+        local_model[n] = net[n].fc.state_dict()
+        nbr = contact[str(n)]  # the nodes n-th node contacted
+        recv_models[n] = []
+        for k in nbr:
+            recv_models[n].append(net[k].fc.state_dict())
+
+    # mixture of models
+    for n in range(10):
+        update_model = recv_models[n]
+        n_nbr = len(update_model)  # how many nodes n-th node contacted
+
+        # put difference of n-th node models and k-th conducted node to n-th into update_model[k]
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                update_model[k][key] = recv_models[n][k][key] - local_model[n][key]
+
+        # mix to local model
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                if local_model[n][key].dtype is torch.float32:
+                    local_model[n][key] += (
+                        update_model[k][key] * fl_coefficiency / float(n_nbr + 1)
+                    )
+                elif local_model[n][key].dtype is torch.int64:
+                    pass
+                else:
+                    print(
+                        key,
+                        type(fl_coefficiency),
+                        type(n_nbr),
+                        local_model[n][key].dtype,
+                        update_model[k][key].dtype,
+                    )
+                    exit(1)
+    # update nets
+    for n in range(10):
+        nbr = contact[str(n)]
+        if len(nbr) > 0:
+            net[n].fc.load_state_dict(local_model[n])
+
+
+def update_nets_vit(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
+    local_model = [{} for i in range(10)]
+    recv_models = [[] for i in range(10)]
+    for n in range(10):
+        local_model[n] = net[n].heads.state_dict()
+        nbr = contact[str(n)]  # the nodes n-th node contacted
+        recv_models[n] = []
+        for k in nbr:
+            recv_models[n].append(net[k].heads.state_dict())
+
+    # mixture of models
+    for n in range(10):
+        update_model = recv_models[n]
+        n_nbr = len(update_model)  # how many nodes n-th node contacted
+
+        # put difference of n-th node models and k-th conducted node to n-th into update_model[k]
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                update_model[k][key] = recv_models[n][k][key] - local_model[n][key]
+
+        # mix to local model
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                if local_model[n][key].dtype is torch.float32:
+                    local_model[n][key] += (
+                        update_model[k][key] * fl_coefficiency / float(n_nbr + 1)
+                    )
+                elif local_model[n][key].dtype is torch.int64:
+                    pass
+                else:
+                    print(
+                        key,
+                        type(fl_coefficiency),
+                        type(n_nbr),
+                        local_model[n][key].dtype,
+                        update_model[k][key].dtype,
+                    )
+                    exit(1)
+    # update nets
+    for n in range(10):
+        nbr = contact[str(n)]
+        if len(nbr) > 0:
+            net[n].heads.load_state_dict(local_model[n])
+
+
+def update_nets_mobile(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
+    local_model = [{} for i in range(10)]
+    recv_models = [[] for i in range(10)]
+    for n in range(10):
+        local_model[n] = net[n].classifier[1].state_dict()
+        nbr = contact[str(n)]  # the nodes n-th node contacted
+        recv_models[n] = []
+        for k in nbr:
+            recv_models[n].append(net[k].classifier[1].state_dict())
+
+    # mixture of models
+    for n in range(10):
+        update_model = recv_models[n]
+        n_nbr = len(update_model)  # how many nodes n-th node contacted
+
+        # put difference of n-th node models and k-th conducted node to n-th into update_model[k]
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                update_model[k][key] = recv_models[n][k][key] - local_model[n][key]
+
+        # mix to local model
+        for k in range(n_nbr):
+            for key in update_model[k]:
+                if local_model[n][key].dtype is torch.float32:
+                    local_model[n][key] += (
+                        update_model[k][key] * fl_coefficiency / float(n_nbr + 1)
+                    )
+                elif local_model[n][key].dtype is torch.int64:
+                    pass
+                else:
+                    print(
+                        key,
+                        type(fl_coefficiency),
+                        type(n_nbr),
+                        local_model[n][key].dtype,
+                        update_model[k][key].dtype,
+                    )
+                    exit(1)
+    # update nets
+    for n in range(10):
+        nbr = contact[str(n)]
+        if len(nbr) > 0:
+            net[n].classifier[1].load_state_dict(local_model[n])
+
+
+def model_exchange(nets, model_name, contact, fl_coefficiency):
+    if model_name == "vgg19_bn":
+        update_nets_vgg(nets, contact, fl_coefficiency)
+    elif model_name == "resnet_152":
+        update_nets_res(nets, contact, fl_coefficiency)
+    elif model_name == "vit_b16":
+        update_nets_vit(nets, contact, fl_coefficiency)
+    elif model_name == "mobilenet_v2":
+        update_nets_mobile(nets, contact, fl_coefficiency)
+
+
+def model_exchange_with_former_vit(
+    former_contact, contact, former_nets, nets, counters, former_exchange_num
+):
+    # countersはcontact_patternの変更から何epochだけ経過したか
+    # former_netsにはcontact_patternが変化した時の変化前のnetsが入る
+    for n in range(len(contact)):
+        if former_contact[str(n)] != contact[str(n)]:
+            former_contact[str(n)] = contact[str(n)]
+            former_nets[n] = nets[n].heads.state_dict()
+            counters[n] = 0
+
+        if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
+            net_param = nets[n].heads.state_dict()
+            for key in former_nets[n]:
+                net_param[key] = net_param[key] * 0.9 + former_nets[n][key] * 0.1
+            nets[n].heads.load_state_dict(net_param)
+            former_exchange_num[n] += 1
+
+        counters[n] += 1
