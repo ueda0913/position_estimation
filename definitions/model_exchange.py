@@ -2,9 +2,10 @@ import torch
 
 
 def update_nets_vgg(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
-    local_model = [{} for i in range(10)]
-    recv_models = [[] for i in range(10)]
-    for n in range(10):
+    n_node = len(contact)
+    local_model = [{} for i in range(n_node)]
+    recv_models = [[] for i in range(n_node)]
+    for n in range(n_node):
         local_model[n] = net[n].classifier[6].state_dict()
         nbr = contact[str(n)]  # the nodes n-th node contacted
         recv_models[n] = []
@@ -12,7 +13,7 @@ def update_nets_vgg(net, contact, fl_coefficiency):  # sはn番目の要素に�
             recv_models[n].append(net[k].classifier[6].state_dict())
 
     # mixture of models
-    for n in range(10):
+    for n in range(n_node):
         update_model = recv_models[n]
         n_nbr = len(update_model)  # how many nodes n-th node contacted
 
@@ -40,16 +41,21 @@ def update_nets_vgg(net, contact, fl_coefficiency):  # sはn番目の要素に�
                     )
                     exit(1)
     # update nets
-    for n in range(10):
+    for n in range(n_node):
         nbr = contact[str(n)]
         if len(nbr) > 0:
             net[n].classifier[6].load_state_dict(local_model[n])
 
 
-def update_nets_res(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
-    local_model = [{} for i in range(10)]
-    recv_models = [[] for i in range(10)]
-    for n in range(10):
+def update_nets_res(
+    net,
+    contact,
+    fl_coefficiency,
+):  # sはn番目の要素に複数のmodelがあるかで決まる
+    n_node = len(contact)
+    local_model = [{} for i in range(n_node)]
+    recv_models = [[] for i in range(n_node)]
+    for n in range(n_node):
         local_model[n] = net[n].fc.state_dict()
         nbr = contact[str(n)]  # the nodes n-th node contacted
         recv_models[n] = []
@@ -57,7 +63,7 @@ def update_nets_res(net, contact, fl_coefficiency):  # sはn番目の要素に�
             recv_models[n].append(net[k].fc.state_dict())
 
     # mixture of models
-    for n in range(10):
+    for n in range(n_node):
         update_model = recv_models[n]
         n_nbr = len(update_model)  # how many nodes n-th node contacted
 
@@ -85,16 +91,21 @@ def update_nets_res(net, contact, fl_coefficiency):  # sはn番目の要素に�
                     )
                     exit(1)
     # update nets
-    for n in range(10):
+    for n in range(n_node):
         nbr = contact[str(n)]
         if len(nbr) > 0:
             net[n].fc.load_state_dict(local_model[n])
 
 
-def update_nets_vit(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
-    local_model = [{} for i in range(10)]
-    recv_models = [[] for i in range(10)]
-    for n in range(10):
+def update_nets_vit(
+    net,
+    contact,
+    fl_coefficiency,
+):  # sはn番目の要素に複数のmodelがあるかで決まる
+    n_node = len(contact)
+    local_model = [{} for i in range(n_node)]
+    recv_models = [[] for i in range(n_node)]
+    for n in range(n_node):
         local_model[n] = net[n].heads.state_dict()
         nbr = contact[str(n)]  # the nodes n-th node contacted
         recv_models[n] = []
@@ -102,7 +113,7 @@ def update_nets_vit(net, contact, fl_coefficiency):  # sはn番目の要素に�
             recv_models[n].append(net[k].heads.state_dict())
 
     # mixture of models
-    for n in range(10):
+    for n in range(n_node):
         update_model = recv_models[n]
         n_nbr = len(update_model)  # how many nodes n-th node contacted
 
@@ -130,16 +141,21 @@ def update_nets_vit(net, contact, fl_coefficiency):  # sはn番目の要素に�
                     )
                     exit(1)
     # update nets
-    for n in range(10):
+    for n in range(n_node):
         nbr = contact[str(n)]
         if len(nbr) > 0:
             net[n].heads.load_state_dict(local_model[n])
 
 
-def update_nets_mobile(net, contact, fl_coefficiency):  # sはn番目の要素に複数のmodelがあるかで決まる
-    local_model = [{} for i in range(10)]
-    recv_models = [[] for i in range(10)]
-    for n in range(10):
+def update_nets_mobile(
+    net,
+    contact,
+    fl_coefficiency,
+):  # sはn番目の要素に複数のmodelがあるかで決まる
+    n_node = len(contact)
+    local_model = [{} for i in range(n_node)]
+    recv_models = [[] for i in range(n_node)]
+    for n in range(n_node):
         local_model[n] = net[n].classifier[1].state_dict()
         nbr = contact[str(n)]  # the nodes n-th node contacted
         recv_models[n] = []
@@ -147,7 +163,7 @@ def update_nets_mobile(net, contact, fl_coefficiency):  # sはn番目の要素�
             recv_models[n].append(net[k].classifier[1].state_dict())
 
     # mixture of models
-    for n in range(10):
+    for n in range(n_node):
         update_model = recv_models[n]
         n_nbr = len(update_model)  # how many nodes n-th node contacted
 
@@ -175,7 +191,7 @@ def update_nets_mobile(net, contact, fl_coefficiency):  # sはn番目の要素�
                     )
                     exit(1)
     # update nets
-    for n in range(10):
+    for n in range(n_node):
         nbr = contact[str(n)]
         if len(nbr) > 0:
             net[n].classifier[1].load_state_dict(local_model[n])

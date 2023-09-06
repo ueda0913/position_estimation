@@ -10,8 +10,12 @@ import umap
 
 
 def evaluate_history(historys, cur_dir):
-    cmap_name = "tab20"
-    cm = plt.colormaps[cmap_name]
+    # color_list = [
+    #     tuple([np.linspace(0, 0.9, len(historys) * 2).tolist[0] for _ in range(3)])
+    #     # for j in range(len(historys) * 2)
+    # ]
+    numpy_array = np.linspace(0, 0.9, len(historys) * 2)
+    color_list = [(x, x, x) for x in numpy_array]
     with open(os.path.join(cur_dir, "log.txt"), "a") as f:
         f.write(f"{len(historys[0])}epochまでの学習\n")
         for i in range(len(historys)):
@@ -32,20 +36,20 @@ def evaluate_history(historys, cur_dir):
         plt.plot(
             historys[i][:, 0],
             historys[i][:, 1],
-            label=f"node{i}(train)",
+            label=f"node{i}(test)",
             linewidth=0.5,
-            color=cm.colors[i * 2],
+            color=color_list[i * 2],
         )
         plt.plot(
             historys[i][:, 0],
             historys[i][:, 3],
-            label=f"node{i}(test)",
+            label=f"node{i}(validation)",
             linewidth=0.5,
-            color=cm.colors[i * 2 + 1],
+            color=color_list[i * 2 + 1],
         )
     plt.xticks(np.arange(0, num_epochs, unit))
-    plt.xlabel("epoch")
-    plt.ylabel("loss")
+    plt.xlabel("Epoch")
+    plt.ylabel("Loss")
     plt.title("Learning curve (loss)")
     plt.legend(ncol=2)
     plt.savefig(os.path.join(cur_dir, "images/loss.png"))
@@ -55,20 +59,20 @@ def evaluate_history(historys, cur_dir):
         plt.plot(
             historys[i][:, 0],
             historys[i][:, 2],
-            label=f"node{i}(train)",
+            label=f"node{i}(training)",
             linewidth=0.5,
-            color=cm.colors[i * 2],
+            color=color_list[i * 2],
         )
         plt.plot(
             historys[i][:, 0],
             historys[i][:, 4],
-            label=f"node{i}(test)",
+            label=f"node{i}(validation)",
             linewidth=0.5,
-            color=cm.colors[i * 2 + 1],
+            color=color_list[i * 2 + 1],
         )
     plt.xticks(np.arange(0, num_epochs + 1, unit))
-    plt.xlabel("epoch")
-    plt.ylabel("accuracy")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy")
     plt.title("Learning curve (accuracy)")
     plt.legend(ncol=2)
     plt.savefig(os.path.join(cur_dir, "images/acc.png"))
@@ -205,7 +209,7 @@ def make_latent_space(y_tests, y_outputs, epoch, ls_path, cur_node):
     plt.savefig(ls_path, bbox_inches="tight")
 
 
-def calc_res_mean_and_std(histories):
+def calc_res_mean_and_std(histories):  # 後ろ10epochの結果の平均と分散を求める
     raw_data = []
     for i in range(len(histories)):
         for j in range(10):  # 何このデータを使って求めるか

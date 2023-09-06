@@ -5,11 +5,10 @@ import japanize_matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
 
-data_dir = "../data-raid/data/UTokyoE_building_dataset"
-project_path = "../data-raid/static/WAFL_research"
-noniid_filter_dir = "../data-raid/static/WAFL_research/noniid_filter"
+data_dir = "../data-raid/data/position_estimation_dataset"
+project_path = "../data-raid/static/WAFL_pos_estimation"
 contact_pattern_dir = "../data-raid/static/contact_pattern"
-classes = ("安田講堂", "工2", "工3", "工13", "工4", "工8", "工1", "工6", "列品館", "法文1")
+classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "val")
 
@@ -34,24 +33,24 @@ if not (os.path.exists(img_dir_path)) or os.path.isfile(img_dir_path):
 
 plt.figure(figsize=(9, 8))
 for i in range(len(historys)):
-    plt.plot(historys[i][:, 0], historys[i][:, 1], label=f"node{i}(訓練)")
-    plt.plot(historys[i][:, 0], historys[i][:, 3], label=f"node{i}(検証)")
+    plt.plot(historys[i][:, 0], historys[i][:, 1], label=f"node{i}(training)")
+    plt.plot(historys[i][:, 0], historys[i][:, 3], label=f"node{i}(validation)")
 plt.xticks(np.arange(0, num_epochs + 1, unit))
-plt.xlabel("繰り返し回数")
-plt.ylabel("損失")
-plt.title("学習曲線(損失)")
+plt.xlabel("Epoch")
+plt.ylabel("Loss")
+plt.title("Learning curve (loss)")
 plt.legend(ncol=2)
 plt.xlim([0, 500])
 plt.savefig(os.path.join(cur_dir, f"images/{filename}_loss.png"))
 
 plt.figure(figsize=(9, 8))
 for i in range(len(historys)):
-    plt.plot(historys[i][:, 0], historys[i][:, 2], label=f"node{i}(訓練)")
-    plt.plot(historys[i][:, 0], historys[i][:, 4], label=f"node{i}(検証)")
+    plt.plot(historys[i][:, 0], historys[i][:, 2], label=f"node{i}(training)")
+    plt.plot(historys[i][:, 0], historys[i][:, 4], label=f"node{i}(validation)")
 plt.xticks(np.arange(0, num_epochs + 1, unit))
-plt.xlabel("繰り返し回数")
-plt.ylabel("精度")
-plt.title("学習曲線(精度)")
+plt.xlabel("Epoch")
+plt.ylabel("Accuracy")
+plt.title("Learning curve (accuracy)")
 plt.legend(ncol=2)
 plt.xlim([0, 500])
 plt.savefig(os.path.join(cur_dir, f"images/{filename}_acc.png"))

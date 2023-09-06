@@ -139,6 +139,7 @@ if useGPUinTrans:
     test_data = MyGPUdataset(
         test_dir,
         device,
+        len(classes),
         transform=test_transform,
         pre_transform=transforms.Resize(256),
     )

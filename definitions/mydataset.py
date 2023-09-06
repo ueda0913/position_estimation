@@ -28,11 +28,11 @@ class FromSubsetDataset(Dataset):  # subset -> dataset
 
 
 class MyGPUdataset(Dataset):  # use when put data on GPU in __init__
-    def __init__(self, root, device, transform=None, pre_transform=None):
+    def __init__(self, root, device, n_output, transform=None, pre_transform=None):
         self.data = []
         self.labels = []
         self.transform = transform
-        for i in range(0, 10):  # labelが0~n_output-1なので、labelごとにデータを追加していく.
+        for i in range(0, n_output):  # labelが0~n_output-1なので、labelごとにデータを追加していく.
             dir = os.path.join(root, str(i))
             images_path = os.listdir(dir)
             images_path.sort()

@@ -9,8 +9,9 @@ from torch.utils.data.dataset import Subset
 
 batch_size = 16
 randomseed = 1
+n_node = 12
 ratio = 70  # the rate that n-th node has n-labeled picture
-data_dir = "../data-raid/data/UTokyoE_building_dataset"
+data_dir = "../data-raid/data/position_estimation_dataset"
 
 random.seed(randomseed)
 
@@ -37,10 +38,10 @@ trainloader = torch.utils.data.DataLoader(
     trainset, batch_size=batch_size, num_workers=50, pin_memory=True
 )
 
-indices = [[], [], [], [], [], [], [], [], [], []]  # indices[i]はi番目のノードのデータ
+indices = [[] for _ in range(n_node)]  # indices[i]はi番目のノードのデータ
 
-means = [torch.zeros(3) for i in range(10)]
-stds = [torch.zeros(3) for i in range(10)]
+means = [torch.zeros(3) for i in range(n_node)]
+stds = [torch.zeros(3) for i in range(n_node)]
 
 index = 0
 for data in trainloader:
@@ -62,20 +63,6 @@ for data in trainloader:
             stds[n] += x[i].std(dim=(1, 2))
 
     index += batch_size
-
-# for i in range(len(trainset)):
-#     x,y = trainset[i]
-#     if random.randint(0,99)<ratio :
-#         indices[y].append(i)
-#         means[y] += x.mean(dim=(1,2))
-#         stds[y] += x.std(dim=(1,2))
-#     else:
-#         n=random.randint(0,8)
-#         if y<=n :
-#             n+=1
-#         indices[n].append(i)
-#         means[n] += x.mean(dim=(1,2))
-#         stds[n] += x.std(dim=(1,2))
 
 for i in range(len(indices)):
     means[i] /= len(indices[i])
