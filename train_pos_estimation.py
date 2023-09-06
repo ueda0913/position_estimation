@@ -28,12 +28,11 @@ warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 
 # path
-data_dir = "../data-raid/data/UTokyoE_building_dataset"
-project_path = "../data-raid/static/WAFL_research"
+data_dir = "../data-raid/data/position_estimation_dataset"
+project_path = "../data-raid/static/WAFL_pos_estimation"
 noniid_filter_dir = os.path.join(data_dir, "noniid_filter")
 contact_pattern_dir = "../data-raid/static/contact_pattern"
-# classes = ("安田講堂", "工2", "工3", "工13", "工4", "工8", "工1", "工6", "列品館", "法文1")
-classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
+classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "val")
 meant_file_path = os.path.join(data_dir, "test_mean.pt")
@@ -45,37 +44,37 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
 # cur_time_index = "2023-07-10-16"
 device = torch.device(
-    "cuda:1" if torch.cuda.is_available() else "cpu"
+    "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
 max_epoch = 3000
 pre_train_epoch = 150
 batch_size = 16
-n_node = 10
+n_node = 12
 n_middle = 256
 fl_coefficiency = 0.1
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
 useGPUinTrans = True  # whether use GPU in transform or not
-lr = 0.01
+lr = 0.05
 momentum = 0.9
-pretrain_lr = 0.01
+pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = False  # if do not use scheduler, False here
+use_scheduler = True  # if do not use scheduler, False here
 scheduler_step = 1000
-scheduler_rate = 0.5
-use_pretrain_scheduler = False
-pretrain_scheduler_step = 30
+scheduler_rate = 0.3
+use_pretrain_scheduler = True
+pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = True
+is_use_noniid_filter = False
 filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n10_a0500_r100_p100_s01.json"
+contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
@@ -175,7 +174,7 @@ else:
 # set train data into subset
 # for i in range(n_node):
 #     print(f"node_{i}:{indices[i]}\n")
-subset = [Subset(train_data, indices[i]) for i in range(10)]
+subset = [Subset(train_data, indices[i]) for i in range(n_node)]
 
 # print data distribution
 # nums = [[0 for i in range(n_node)] for j in range(n_node)]
@@ -288,7 +287,7 @@ if use_scheduler:
         optim.lr_scheduler.StepLR(
             optimizers[i], step_size=scheduler_step, gamma=scheduler_rate
         )
-        for i in range(10)
+        for i in range(n_node)
     ]
 if use_pretrain_scheduler:
     pretrain_schedulers = [
@@ -297,7 +296,7 @@ if use_pretrain_scheduler:
             step_size=pretrain_scheduler_step,
             gamma=pretrain_scheduler_rate,
         )
-        for i in range(10)
+        for i in range(n_node)
     ]
 
 contact_list = []
@@ -310,7 +309,7 @@ if __name__ == "__main__":
             "rb",
         ) as f:
             historys = pickle.load(f)
-        for n in range(10):
+        for n in range(n_node):
             nets[n].load_state_dict(
                 torch.load(
                     os.path.join(
@@ -336,7 +335,7 @@ if __name__ == "__main__":
         if len(historys[0]) != load_epoch + 1:
             print("error: do not load suitable file")
             exit(1)
-        for n in range(10):
+        for n in range(n_node):
             nets[n].load_state_dict(
                 torch.load(
                     os.path.join(

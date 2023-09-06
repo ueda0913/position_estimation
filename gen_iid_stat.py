@@ -8,8 +8,8 @@ from torch.utils.data.dataset import Subset
 from torchvision.datasets import ImageFolder
 
 # Data path
-data_dir = "../data-raid/data/UTokyoE_building_dataset"
-classes = ("安田講堂", "工2", "工3", "工13", "工4", "工8", "工1", "工6", "列品館", "法文1")
+data_dir = "../data-raid/data/position_estimation_dataset"
+classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
 train_dir = os.path.join(data_dir, "train")
 # 保存先
 noniid_filter_dir = os.path.join(data_dir, "noniid_filter")
@@ -18,7 +18,7 @@ std_file = os.path.join(noniid_filter_dir, "IID_train_std.pt")
 
 # 変数
 batch_size = 16
-n_node = 10
+n_node = 12
 
 # seedの設定
 torch_seed()  # seedの固定 # 場所の変更------------
@@ -28,8 +28,6 @@ torch_seed()  # seedの固定 # 場所の変更------------
 # datasetの用意
 tmp_transform = transforms.Compose(  # Non-IIdフィルタと合わせた
     [
-        transforms.Resize(256),
-        transforms.CenterCrop(224),
         transforms.ToTensor(),
     ]
 )
