@@ -4,7 +4,7 @@ import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
-from definitions.mydatasets import MyGPUdataset
+from definitions.mydataset import MyGPUdataset
 from definitions.net import select_net
 from definitions.visualize import show_image_labels
 from torch.utils.data import DataLoader
@@ -20,10 +20,10 @@ from train_pos_estimation import (
 
 ###change area
 epoch = 3000
-static_date_index = "2023-09-03-09"  # trained epoch to load
+static_date_index = "2023-09-07-12"  # trained epoch to load
 batch_size = 16
-all_images = False
-node = 0  # node num
+all_images = True
+node = 3  # node num
 
 
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
@@ -90,20 +90,22 @@ if __name__ == "__main__":
     nets = [
         select_net(model_name, len(classes), n_middle).to(device) for i in range(n_node)
     ]
-    nets.load_state_dict(
-        torch.load(
-            os.path.join(
-                project_path, static_date_index, f"params/epoch-{epoch:04d}.pth"
+    for i in range(n_node):
+        nets[i].load_state_dict(
+            torch.load(
+                os.path.join(
+                    project_path,
+                    static_date_index,
+                    f"params/node{i}_epoch-{epoch:04d}.pth",
+                )
             )
         )
-    )
     show_image_labels(
         test_loader,
         classes,
         nets[node],
         device,
         epoch,
-        static_date_index,
-        project_path,
+        os.path.join(project_path, static_date_index),
         all_images,
     )

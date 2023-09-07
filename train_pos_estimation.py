@@ -29,10 +29,12 @@ warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 
 # path
 data_dir = "../data-raid/data/position_estimation_dataset"
+# data_dir = "../data-raid/data/UTokyoE_building_dataset"
 project_path = "../data-raid/static/WAFL_pos_estimation"
 noniid_filter_dir = os.path.join(data_dir, "noniid_filter")
 contact_pattern_dir = "../data-raid/static/contact_pattern"
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
+# classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "val")
 meant_file_path = os.path.join(data_dir, "test_mean.pt")
@@ -46,10 +48,10 @@ cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
 device = torch.device(
     "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
-max_epoch = 3000
-pre_train_epoch = 150
+max_epoch = 300
+pre_train_epoch = 50
 batch_size = 16
-n_node = 12
+n_node = 10
 n_middle = 256
 fl_coefficiency = 0.1
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
@@ -61,10 +63,10 @@ pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = True  # if do not use scheduler, False here
+use_scheduler = False  # if do not use scheduler, False here
 scheduler_step = 1000
 scheduler_rate = 0.3
-use_pretrain_scheduler = True
+use_pretrain_scheduler = False
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
@@ -74,7 +76,7 @@ filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+contact_file = "rwp_n10_a0500_r100_p40_s01.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
@@ -99,7 +101,6 @@ schedulers = None
 pretrain_schedulers = None
 
 # make test_transform
-
 if not (os.path.exists(meant_file_path)) or not (os.path.exists(stdt_file_path)):
     mean_t, std_t = search_mean_and_std(test_dir)
     torch.save(mean_t, meant_file_path)
@@ -110,42 +111,27 @@ else:
     std_t = torch.load(stdt_file_path)
     print("loading of mean and std in test data finished")
 
-if useGPUinTrans:
-    test_transform = transforms.Compose(
-        [
-            transforms.CenterCrop(224),
-            transforms.ConvertImageDtype(torch.float32),
-            transforms.Normalize(
-                mean=tuple(mean_t.tolist()), std=tuple(std_t.tolist())
-            ),
-        ]
-    )
-else:
-    test_transform = transforms.Compose(
-        [
-            transforms.Resize(256),
-            transforms.CenterCrop(224),
-            transforms.ToTensor(),
-            transforms.Normalize(
-                mean=tuple(mean_t.tolist()), std=tuple(std_t.tolist())
-            ),
-        ]
-    )
+test_transform = transforms.Compose(
+    [
+        transforms.CenterCrop(224),
+        transforms.ConvertImageDtype(torch.float32),
+        transforms.Normalize(mean=tuple(mean_t.tolist()), std=tuple(std_t.tolist())),
+    ]
+)
 
 # makde train_data
-if useGPUinTrans:
-    # train_data = MyGPUdataset(train_dir, device, pre_transform=transforms.Resize(256))
-    train_data = ImageFolder(train_dir)
-    test_data = MyGPUdataset(
-        test_dir,
-        device,
-        len(classes),
-        transform=test_transform,
-        pre_transform=transforms.Resize(256),
-    )
-else:
-    train_data = datasets.ImageFolder(train_dir)
-    test_data = datasets.ImageFolder(test_dir, transform=test_transform)
+train_data = MyGPUdataset(
+    train_dir, device, len(classes), pre_transform=transforms.Resize(256)
+)
+# train_data = ImageFolder(train_dir)
+test_data = MyGPUdataset(
+    test_dir,
+    device,
+    len(classes),
+    transform=test_transform,
+    pre_transform=transforms.Resize(256),
+)
+
 
 # loading filter and statistics
 if is_use_noniid_filter:
@@ -193,30 +179,18 @@ for i in range(len(subset)):
     mean = mean.tolist()
     std = stds[i]
     std = std.tolist()
-    if useGPUinTrans:
-        train_transform = transforms.Compose(
-            [
-                transforms.RandomResizedCrop(size=224, scale=(0.4, 1.0)),
-                # transforms.RandomCrop(224),
-                transforms.ConvertImageDtype(torch.float32),
-                transforms.Normalize(mean=tuple(mean), std=tuple(std)),
-                # transforms.Normalize(0.5, 0.5)
-                transforms.RandomErasing(
-                    p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False
-                ),
-            ]
-        )
-    else:
-        train_transform = transforms.Compose(
-            [
-                transforms.RandomResizedCrop(size=224, scale=(0.4, 1.0)),
-                transforms.ToTensor(),
-                transforms.Normalize(mean=tuple(mean), std=tuple(std)),
-                transforms.RandomErasing(
-                    p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False
-                ),
-            ]
-        )
+    train_transform = transforms.Compose(
+        [
+            transforms.RandomResizedCrop(size=224, scale=(0.4, 1.0)),
+            # transforms.RandomCrop(224),
+            transforms.ConvertImageDtype(torch.float32),
+            transforms.Normalize(mean=tuple(mean), std=tuple(std)),
+            # transforms.Normalize(0.5, 0.5)
+            transforms.RandomErasing(
+                p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False
+            ),
+        ]
+    )
     pre_transform = transforms.Compose(
         [
             transforms.ToTensor(),
@@ -225,46 +199,33 @@ for i in range(len(subset)):
         ]
     )
     train_dataset_new = FromSubsetDataset(
-        subset[i], device, transform=train_transform, pre_transform=pre_transform
+        # subset[i], device, transform=train_transform, pre_transform=pre_transform
+        subset[i],
+        device,
+        transform=train_transform,
     )
-    if useGPUinTrans:
-        trainloader.append(
-            DataLoader(
-                train_dataset_new,
-                batch_size=batch_size,
-                shuffle=True,
-                num_workers=0,
-                pin_memory=False,
-                worker_init_fn=seed_worker,
-                generator=g,
-            )
+    trainloader.append(
+        DataLoader(
+            train_dataset_new,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=0,
+            pin_memory=False,
+            worker_init_fn=seed_worker,
+            generator=g,
         )
-    else:
-        trainloader.append(
-            DataLoader(
-                train_dataset_new,
-                batch_size=batch_size,
-                shuffle=True,
-                num_workers=50,
-                pin_memory=True,
-            )
-        )
+    )
 
 # make test_dataloader
-if useGPUinTrans:
-    testloader = DataLoader(
-        test_data,
-        batch_size=batch_size,
-        shuffle=False,
-        num_workers=0,
-        pin_memory=False,
-        worker_init_fn=seed_worker,
-        generator=g,
-    )
-else:
-    testloader = DataLoader(
-        test_data, batch_size=batch_size, shuffle=False, num_workers=50, pin_memory=True
-    )
+testloader = DataLoader(
+    test_data,
+    batch_size=batch_size,
+    shuffle=False,
+    num_workers=0,
+    pin_memory=False,
+    worker_init_fn=seed_worker,
+    generator=g,
+)
 
 # define net, optimizer, criterion
 criterion = nn.CrossEntropyLoss()

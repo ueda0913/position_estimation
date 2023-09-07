@@ -80,7 +80,7 @@ def evaluate_history(historys, cur_dir):
 
 def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_images):
     if all_images:
-        plt.figure(figsize=(20, 100))
+        plt.figure(figsize=(30, 80))
         row_num = (
             len(loader.dataset) // 10
             if len(loader.dataset) % 10 == 0
@@ -89,11 +89,12 @@ def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_i
     else:
         plt.figure(figsize=(20, 15))
         row_num = (
-            loader.batch_size // 10
-            if loader.batch_size % 10 == 0
-            else loader.batch_size // 10 + 1
+            loader.batch_size // 75
+            if loader.batch_size % 75 == 0
+            else loader.batch_size // 75 + 1
         )
     index = 0
+    wrong_data_num = 0
     for images, labels in loader:
         n_size = len(images)
         if net is not None:
@@ -104,6 +105,9 @@ def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_i
             outputs = net(images)
             predicted = torch.max(outputs, 1)[1]
             images = images.to("cpu")
+        else:
+            images = images.to("cpu")
+            labels = labels.to("cpu")
 
         for i in range(n_size):
             ax = plt.subplot(row_num, 10, index * n_size + i + 1)
@@ -127,7 +131,9 @@ def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_i
             break
         index += 1
     plt.savefig(
-        os.path.join(cur_dir, f"images/sample_images/si-epoch-{loaded_epoch}.png")
+        os.path.join(cur_dir, f"images/sample_images/si-epoch-{loaded_epoch}.png"),
+        bbox_inches="tight",
+        pad_inches=0,
     )
 
 

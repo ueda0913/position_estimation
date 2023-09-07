@@ -11,8 +11,11 @@ class FromSubsetDataset(Dataset):  # subset -> dataset
         new_data_list = []
         for i in range(len(data_list)):
             image, label = data_list[i]
-            image = pre_transform(image).to(device)
-            label = torch.tensor(label).to(device)
+            if pre_transform is not None:
+                image = pre_transform(image).to(device)
+            else:
+                image = image.to(device)
+            label = torch.tensor(int(label)).to(device)
             new_data_list.append([image, label])
         self.transform = transform
         self.data_list = new_data_list
@@ -35,7 +38,7 @@ class MyGPUdataset(Dataset):  # use when put data on GPU in __init__
         for i in range(0, n_output):  # labelが0~n_output-1なので、labelごとにデータを追加していく.
             dir = os.path.join(root, str(i))
             images_path = os.listdir(dir)
-            images_path.sort()
+            # images_path.sort()
             for image_path in images_path:
                 full_path = os.path.join(dir, image_path)
                 image_buf = io.read_image(full_path).to(device)

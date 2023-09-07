@@ -18,7 +18,6 @@ import torchvision.transforms as transforms
 from definitions.visualize import *
 from sklearn.metrics import confusion_matrix
 
-data_root = "../data-raid/data/UTokyoE_building_dataset"
 # time_index = datetime.now().strftime("%Y-%m-%d-%H")
 
 # デフォルトフォントサイズ変更
