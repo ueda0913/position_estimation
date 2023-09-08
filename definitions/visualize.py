@@ -10,12 +10,32 @@ import umap
 
 
 def evaluate_history(historys, cur_dir):
-    # color_list = [
-    #     tuple([np.linspace(0, 0.9, len(historys) * 2).tolist[0] for _ in range(3)])
-    #     # for j in range(len(historys) * 2)
-    # ]
-    numpy_array = np.linspace(0, 0.9, len(historys) * 2)
-    color_list = [(x, x, x) for x in numpy_array]
+    # numpy_array = np.linspace(0, 0.9, len(historys) * 2)
+    # color_list = [(x, x, x) for x in numpy_array]
+    color_list = [
+        "#1f77b4",
+        "#ff7f0e",
+        "#2ca02c",
+        "#d62728",
+        "#9467bd",
+        "#8c564b",
+        "#e377c2",
+        "#7f7f7f",
+        "#bcbd22",
+        "#17becf",
+        "#1a55FF",
+        "#FF1A1A",
+        "#00D400",
+        "#00A8A8",
+        "#FDCB00",
+        "#00B9F2",
+        "#7E00F2",
+        "#5A5A5A",
+        "#FF9914",
+        "#CCFF14",
+        "#00A8CC",
+        "#FF69B4",
+    ]
     with open(os.path.join(cur_dir, "log.txt"), "a") as f:
         f.write(f"{len(historys[0])}epochまでの学習\n")
         for i in range(len(historys)):

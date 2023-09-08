@@ -7,15 +7,10 @@ from torch.utils.data import Dataset
 
 
 class FromSubsetDataset(Dataset):  # subset -> dataset
-    def __init__(self, data_list, device, transform=None, pre_transform=None):
+    def __init__(self, data_list, transform=None):
         new_data_list = []
         for i in range(len(data_list)):
             image, label = data_list[i]
-            if pre_transform is not None:
-                image = pre_transform(image).to(device)
-            else:
-                image = image.to(device)
-            label = torch.tensor(int(label)).to(device)
             new_data_list.append([image, label])
         self.transform = transform
         self.data_list = new_data_list

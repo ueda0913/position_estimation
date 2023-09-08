@@ -34,7 +34,6 @@ project_path = "../data-raid/static/WAFL_pos_estimation"
 noniid_filter_dir = os.path.join(data_dir, "noniid_filter")
 contact_pattern_dir = "../data-raid/static/contact_pattern"
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
-# classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9")
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "val")
 meant_file_path = os.path.join(data_dir, "test_mean.pt")
@@ -48,25 +47,24 @@ cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
 device = torch.device(
     "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
-max_epoch = 300
-pre_train_epoch = 50
+max_epoch = 3000
+pre_train_epoch = 150
 batch_size = 16
-n_node = 10
+n_node = 12
 n_middle = 256
 fl_coefficiency = 0.1
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
-useGPUinTrans = True  # whether use GPU in transform or not
 lr = 0.05
 momentum = 0.9
 pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = False  # if do not use scheduler, False here
+use_scheduler = True  # if do not use scheduler, False here
 scheduler_step = 1000
-scheduler_rate = 0.3
-use_pretrain_scheduler = False
+scheduler_rate = 0.5
+use_pretrain_scheduler = True
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
@@ -76,7 +74,7 @@ filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n10_a0500_r100_p40_s01.json"
+contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
@@ -191,17 +189,8 @@ for i in range(len(subset)):
             ),
         ]
     )
-    pre_transform = transforms.Compose(
-        [
-            transforms.ToTensor(),
-            transforms.ConvertImageDtype(torch.uint8),
-            transforms.Resize(256),
-        ]
-    )
     train_dataset_new = FromSubsetDataset(
-        # subset[i], device, transform=train_transform, pre_transform=pre_transform
         subset[i],
-        device,
         transform=train_transform,
     )
     trainloader.append(
