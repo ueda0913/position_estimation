@@ -45,7 +45,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
 # cur_time_index = "2023-07-10-16"
 device = torch.device(
-    "cuda:0" if torch.cuda.is_available() else "cpu"
+    "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
 max_epoch = 3000
 pre_train_epoch = 150
@@ -55,16 +55,16 @@ n_middle = 256
 fl_coefficiency = 0.1
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
-lr = 0.05
+lr = 0.005
 momentum = 0.9
-pretrain_lr = 0.05
+pretrain_lr = 0.005
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = True  # if do not use scheduler, False here
+use_scheduler = False  # if do not use scheduler, False here
 scheduler_step = 1000
 scheduler_rate = 0.5
-use_pretrain_scheduler = True
+use_pretrain_scheduler = False
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
@@ -79,6 +79,7 @@ contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file = 'meet_at_once_t10000.json'
 
 ## select train mode
+use_previous_memory = False  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
 is_train_only = False  # use to load pre-trained data and start training from scratch
 is_restart = False  # use to load traied_data and add training
@@ -92,7 +93,7 @@ contact_file_path = os.path.join(contact_pattern_dir, contact_file)
 
 torch_seed()
 g = torch.Generator()
-g.manual_seed(0)
+g.manual_seed(123)
 
 print("using device", device)
 schedulers = None
@@ -369,14 +370,15 @@ if __name__ == "__main__":
         contact_list = json.load(f)
 
     # below 3 rows are used to use previous memory
-    former_contact = contact_list[0]
-    former_nets = []
-    for n in range(len(nets)):  # for vit
-        former_nets.append(nets[n].heads.state_dict())
-    counters = [0 for _ in range(n_node)]
-    former_exchange_num = [
-        0 for _ in range(n_node)
-    ]  # how many times exchange with former one
+    if use_previous_memory:
+        former_contact = contact_list[0]
+        former_nets = []
+        for n in range(len(nets)):  # for vit
+            former_nets.append(nets[n].heads.state_dict())
+        counters = [0 for _ in range(n_node)]
+        former_exchange_num = [
+            0 for _ in range(n_node)
+        ]  # how many times exchange with former one
 
     for epoch in range(
         load_epoch, max_epoch + load_epoch
@@ -384,9 +386,15 @@ if __name__ == "__main__":
         contact = contact_list[epoch]
 
         # below row are used to use previous memory
-        model_exchange_with_former_vit(
-            former_contact, contact, former_nets, nets, counters, former_exchange_num
-        )
+        if use_previous_memory:
+            model_exchange_with_former_vit(
+                former_contact,
+                contact,
+                former_nets,
+                nets,
+                counters,
+                former_exchange_num,
+            )
         model_exchange(nets, model_name, contact, fl_coefficiency)
 
         for n in range(n_node):

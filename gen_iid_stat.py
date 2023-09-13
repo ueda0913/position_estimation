@@ -2,6 +2,7 @@
 import os
 
 import torch
+from definitions.mydataset import *
 from definitions.train_functions import *
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
@@ -15,6 +16,9 @@ train_dir = os.path.join(data_dir, "train")
 noniid_filter_dir = os.path.join(data_dir, "noniid_filter")
 mean_file = os.path.join(noniid_filter_dir, "IID_train_mean.pt")
 std_file = os.path.join(noniid_filter_dir, "IID_train_std.pt")
+device = torch.device(
+    "cuda:1" if torch.cuda.is_available() else "cpu"
+)  # use 0 in GPU1 use 1 in GPU2
 
 # 変数
 batch_size = 16
@@ -22,16 +26,18 @@ n_node = 12
 
 # seedの設定
 torch_seed()  # seedの固定 # 場所の変更------------
-# g = torch.Generator()
-# g.manual_seed(0)
+g = torch.Generator()
+g.manual_seed(123)
 
 # datasetの用意
 tmp_transform = transforms.Compose(  # Non-IIdフィルタと合わせた
     [
-        transforms.ToTensor(),
+        transforms.ConvertImageDtype(torch.float32),
     ]
 )
-train_data = ImageFolder(train_dir, transform=tmp_transform)
+train_data = MyGPUdataset(
+    train_dir, device, len(classes), pre_transform=transforms.Resize(256)
+)
 
 # IIDでデータセットを分割
 indices = [[] for i in range(n_node)]
@@ -43,24 +49,35 @@ for i in range(len(train_data)):
 #     print(f"node_{i}:{indices[i]}\n")
 subset = [Subset(train_data, indices[i]) for i in range(n_node)]
 nums = [[0 for i in range(n_node)] for j in range(n_node)]
-# for i in range(n_node): # データ分布の出力を行う
-#     for j in range(len(subset[i])):
-#         image, label = subset[i][j]
-#         nums[i][int(label)] += 1
-#     print(f'Distributions of data')
-#     print(f"train_data of node_{i}: {nums[i]}\n")
+for i in range(n_node):  # データ分布の出力を行う
+    for j in range(len(subset[i])):
+        image, label = subset[i][j]
+        nums[i][int(label)] += 1
+    print(f"Distributions of data")
+    print(f"train_data of node_{i}: {nums[i]}\n")
 
-train_loader = [
-    DataLoader(subset[i], batch_size=batch_size, num_workers=50)
-    for i in range(0, n_node)
-]
-# for i in range(0, n_node):
-#     train_loader.append(DataLoader(subset[i], batch_size=batch_size, shuffle=True))
+train_loader = []
+for i in range(0, n_node):
+    train_dataset_new = FromSubsetDataset(
+        subset[i],
+        transform=tmp_transform,
+    )
+    train_loader.append(
+        DataLoader(
+            train_dataset_new,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=0,
+            pin_memory=False,
+            worker_init_fn=seed_worker,
+            generator=g,
+        )
+    )
 
 print(len(subset[0]))
 print(len(train_loader[0]))
-means = [torch.zeros(3) for i in range(n_node)]
-stds = [torch.zeros(3) for i in range(n_node)]
+means = [torch.zeros(3).to(device) for i in range(n_node)]
+stds = [torch.zeros(3).to(device) for i in range(n_node)]
 
 # dataloaderから読み出して平均と分散を求める
 for i in range(0, n_node):  # nodeに関してforループ
