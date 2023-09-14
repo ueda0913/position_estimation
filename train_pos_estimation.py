@@ -43,9 +43,9 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = "2023-07-10-16"
+# cur_time_index = ""
 device = torch.device(
-    "cuda:1" if torch.cuda.is_available() else "cpu"
+    "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
 max_epoch = 3000
 pre_train_epoch = 150
@@ -55,21 +55,21 @@ n_middle = 256
 fl_coefficiency = 0.1
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
-lr = 0.005
+lr = 0.05
 momentum = 0.9
-pretrain_lr = 0.005
+pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = False  # if do not use scheduler, False here
+use_scheduler = True  # if do not use scheduler, False here
 scheduler_step = 1000
 scheduler_rate = 0.5
-use_pretrain_scheduler = False
+use_pretrain_scheduler = True
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = False
+is_use_noniid_filter = True
 filter_rate = 70
 filter_seed = 1
 
@@ -158,8 +158,8 @@ else:
     print("Loading of mean and std in iid train data finished")
 
 # set train data into subset
-# for i in range(n_node):
-#     print(f"node_{i}:{indices[i]}\n")
+for i in range(n_node):
+    print(f"node_{i}:{indices[i]}\n")
 subset = [Subset(train_data, indices[i]) for i in range(n_node)]
 
 # print data distribution
@@ -370,15 +370,15 @@ if __name__ == "__main__":
         contact_list = json.load(f)
 
     # below 3 rows are used to use previous memory
+    former_contact = contact_list[0]
+    former_nets = []
     if use_previous_memory:
-        former_contact = contact_list[0]
-        former_nets = []
         for n in range(len(nets)):  # for vit
             former_nets.append(nets[n].heads.state_dict())
-        counters = [0 for _ in range(n_node)]
-        former_exchange_num = [
-            0 for _ in range(n_node)
-        ]  # how many times exchange with former one
+    counters = [0 for _ in range(n_node)]
+    former_exchange_num = [
+        0 for _ in range(n_node)
+    ]  # how many times exchange with former one
 
     for epoch in range(
         load_epoch, max_epoch + load_epoch

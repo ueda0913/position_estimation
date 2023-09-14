@@ -219,11 +219,13 @@ def model_exchange_with_former_vit(
             former_nets[n] = nets[n].heads.state_dict()
             counters[n] = 0
 
+        net_param = nets[n].heads.state_dict()
+        ratio = 0.01 * counters[n]
         if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
-            net_param = nets[n].heads.state_dict()
-            for key in former_nets[n]:
-                net_param[key] = net_param[key] * 0.9 + former_nets[n][key] * 0.1
-            nets[n].heads.load_state_dict(net_param)
-            former_exchange_num[n] += 1
+            ratio = 0.1
+        for key in former_nets[n]:
+            net_param[key] = net_param[key] * (1 - ratio) + former_nets[n][key] * ratio
+        nets[n].heads.load_state_dict(net_param)
+        former_exchange_num[n] += 1
 
         counters[n] += 1

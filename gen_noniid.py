@@ -10,7 +10,6 @@ from definitions.train_functions import *
 from torch.utils.data.dataset import Subset
 
 batch_size = 16
-randomseed = 1
 n_node = 12
 ratio = 70  # the rate that n-th node has n-labeled picture
 data_dir = "../data-raid/data/position_estimation_dataset"
@@ -22,6 +21,8 @@ device = torch.device(
 torch_seed()  # seedの固定 # 場所の変更------------
 g = torch.Generator()
 g.manual_seed(123)
+randomseed = 2
+random.seed(randomseed)
 
 
 filename = os.path.join(
@@ -41,7 +42,11 @@ tmp_transform = transforms.Compose(
     ]
 )
 train_data = MyGPUdataset(
-    train_dir, device, n_node, pre_transform=transforms.Resize(256)
+    train_dir,
+    device,
+    n_node,
+    transform=tmp_transform,
+    pre_transform=transforms.Resize(256),
 )
 trainloader = torch.utils.data.DataLoader(
     train_data,
@@ -82,7 +87,9 @@ for data in trainloader:
 for i in range(len(indices)):
     means[i] /= len(indices[i])
     stds[i] /= len(indices[i])
-    # print(indices[i])
+    means[i] = means[i].to("cpu")
+    stds[i] = stds[i].to("cpu")
+    print(f"node_{i}:{indices[i]}\n")
 
 print(f"means:\n{means}\nstds:\n{stds}")
 torch.save(indices, filename)

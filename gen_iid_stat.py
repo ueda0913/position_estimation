@@ -92,6 +92,8 @@ for i in range(0, n_node):  # nodeに関してforループ
 for i in range(n_node):
     means[i] /= len(indices[i])  # node_iの持つデータ数で割る
     stds[i] /= len(indices[i])
+    means[i] = means[i].to("cpu")
+    stds[i] = stds[i].to("cpu")
 
 print(means)
 print(stds)
