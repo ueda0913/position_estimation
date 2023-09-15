@@ -43,7 +43,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = ""
+cur_time_index = "resnet_wafl_raw_iid"
 device = torch.device(
     "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -53,23 +53,23 @@ batch_size = 16
 n_node = 12
 n_middle = 256
 fl_coefficiency = 0.1
-model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
+model_name = "resnet_152"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
-lr = 0.05
+lr = 0.005
 momentum = 0.9
-pretrain_lr = 0.05
+pretrain_lr = 0.005
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = True  # if do not use scheduler, False here
+use_scheduler = False  # if do not use scheduler, False here
 scheduler_step = 1000
 scheduler_rate = 0.5
-use_pretrain_scheduler = True
+use_pretrain_scheduler = False
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = True
+is_use_noniid_filter = False
 filter_rate = 70
 filter_seed = 1
 
@@ -321,10 +321,14 @@ if __name__ == "__main__":
         f.write(f"train transform: {trainloader[0].dataset.transform}\n")
         f.write(f"optimizer: {optimizers[0]}\n")
         if use_scheduler:
-            f.write(f"pre-training sheduler: {schedulers[0]}\n")
+            f.write(f"training sheduler step: {schedulers[0].step_size}\n")
+            f.write(f"training sheduler gamma: {schedulers[0].gamma}\n")
         f.write(f"pre-training optimizer: {pretrain_optimizers[0]}\n")
         if use_pretrain_scheduler:
-            f.write(f"pre-training sheduler: {pretrain_schedulers[0]}\n")
+            f.write(f"pre-training sheduler step: {pretrain_schedulers[0].step_size}\n")
+            f.write(f"pre-training sheduler gamma: {pretrain_schedulers[0].gamma}\n")
+        f.write(f"use previous memory: {use_previous_memory}\n")
+        f.write(f"pre_train_only: {is_pre_train_only}\n")
         f.write(f"net:\n {summary(nets[0], (1,3,224,224), verbose=False)}\n")
 
     if (not is_train_only) and (not is_restart):
