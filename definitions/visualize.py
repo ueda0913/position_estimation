@@ -244,4 +244,6 @@ def calc_res_mean_and_std(histories):  # 後ろ10epochの結果の平均と分�
             raw_data.append(histories[i][-j - 1][4])
     mean = statistics.mean(raw_data)
     std = statistics.stdev(raw_data)
-    return mean, std
+    max_acc = max(raw_data)
+    min_acc = min(raw_data)
+    return mean, std, max_acc, min_acc

@@ -2,40 +2,7 @@
 
 ## IIDの結果
 
-### vit_wafl_raw_iid
-
-- vit
-- epoch: 150->3000
-- fl_coefficiency = 0.1
-- SGD(lr=0.005,momentum = 0.9,pretrain_lr = 0.005,pretrain_momentum = 0.9)
-- schedulerなし
-- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
-- the average of the last 10 epoch: 0.8347462514417532
-- the std of the last 10 epoch: 0.027045538501666733
-
-### mobile_wafl_raw_iid
-
-- mobile
-- epoch: 150->3000
-- fl_coefficiency = 0.1
-- SGD(lr=0.005,momentum = 0.9,pretrain_lr = 0.005,pretrain_momentum = 0.9)
-- schedulerなし
-- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
-- the average of the last 10 epoch:
-- the std of the last 10 epoch:
-
-### resnet_wafl_raw_iid
-
-- resnet
-- epoch: 150->3000
-- fl_coefficiency = 0.1
-- SGD(lr=0.005,momentum = 0.9,pretrain_lr = 0.005,pretrain_momentum = 0.9)
-- schedulerなし
-- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
-- the average of the last 10 epoch:
-- the std of the last 10 epoch:
-
-### 2023-09-14-15
+### 2023-09-14-15(lrを大きく)
 
 - vit
 - epoch: 150->3000
@@ -46,7 +13,16 @@
 - the average of the last 10 epoch: 0.8372837370242214
 - the std of the last 10 epoch: 0.01707250711501161
 
-### 2023-09-15-07
+### 2023-09-17-09(lrの減少を早く)
+
+- vit
+- epoch: 150->3000
+- fl_coefficiency = 0.1
+- SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+
+### 2023-09-15-23(過去の記憶使用)
 
 - vit
 - epoch: 150->3000
@@ -54,8 +30,11 @@
 - SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
 - scheduler(scheduler_step = 1000,scheduler_rate = 0.5,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
-- use_previous_memory
-- -> 死んだので後回し
+- use_previous_memory(連続変化)
+- the average of the last 10 epoch: 0.8474625144175317
+- the std of the last 10 epoch: 0.01623962493684984
+- the maxmize of the last 10 epoch: 0.8685121107266436
+- the minimum of the last 10 epoch: 0.7508650519031141
 
 ## Non-IIDの結果
 

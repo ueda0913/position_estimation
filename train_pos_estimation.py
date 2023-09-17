@@ -43,7 +43,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-cur_time_index = "resnet_wafl_raw_iid"
+# cur_time_index = "mobile_wafl_raw_iid_line"
 device = torch.device(
     "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -53,18 +53,18 @@ batch_size = 16
 n_node = 12
 n_middle = 256
 fl_coefficiency = 0.1
-model_name = "resnet_152"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
+model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
-lr = 0.005
+lr = 0.05
 momentum = 0.9
-pretrain_lr = 0.005
+pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # schedulers
-use_scheduler = False  # if do not use scheduler, False here
-scheduler_step = 1000
-scheduler_rate = 0.5
-use_pretrain_scheduler = False
+use_scheduler = True  # if do not use scheduler, False here
+scheduler_step = 750
+scheduler_rate = 0.3
+use_pretrain_scheduler = True
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
@@ -75,6 +75,7 @@ filter_seed = 1
 
 ## about contact patterns
 contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+# contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
@@ -163,12 +164,12 @@ for i in range(n_node):
 subset = [Subset(train_data, indices[i]) for i in range(n_node)]
 
 # print data distribution
-# nums = [[0 for i in range(n_node)] for j in range(n_node)]
-# for i in range(n_node):
-#     for j in range(len(subset[i])):
-#         image, label = subset[i][j]
-#         nums[i][int(label)] += 1
-#     print(f"train_data of node_{i}: {nums[i]}\n")
+nums = [[0 for i in range(n_node)] for j in range(n_node)]
+for i in range(n_node):
+    for j in range(len(subset[i])):
+        image, label = subset[i][j]
+        nums[i][int(label)] += 1
+    print(f"train_data of node_{i}: {nums[i]}\n")
 
 
 # make train_data_loader
@@ -480,9 +481,11 @@ if __name__ == "__main__":
     with open(history_save_path, "wb") as f:
         pickle.dump(historys, f)
         print("saving historys...")
-    mean, std = calc_res_mean_and_std(historys)
+    mean, std, max_acc, min_acc = calc_res_mean_and_std(historys)
     with open(os.path.join(cur_dir, "log.txt"), "a") as f:
         f.write(f"the average of the last 10 epoch: {mean}\n")
         f.write(f"the std of the last 10 epoch: {std}\n")
+        f.write(f"the maxmize of the last 10 epoch: {max_acc}\n")
+        f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
     evaluate_history(historys, cur_dir)
     print("Finished Training")
