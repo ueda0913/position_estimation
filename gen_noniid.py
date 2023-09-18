@@ -75,7 +75,7 @@ for data in trainloader:
             means[y[i]] += x[i].mean(dim=(1, 2))
             stds[y[i]] += x[i].std(dim=(1, 2))
         else:
-            n = random.randint(0, 8)
+            n = random.randint(0, n_node - 2)
             if y[i] <= n:
                 n += 1
             indices[n].append(index + i)

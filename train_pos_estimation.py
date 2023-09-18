@@ -43,7 +43,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = "mobile_wafl_raw_iid_line"
+# cur_time_index = "2023-09-18-15"
 device = torch.device(
     "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -69,7 +69,7 @@ pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = False
+is_use_noniid_filter = True
 filter_rate = 70
 filter_seed = 1
 

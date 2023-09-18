@@ -9,11 +9,11 @@ import pickle
 import matplotlib.pyplot as plt
 
 project_path = "../data-raid/static/WAFL_pos_estimation"
-vgg_dir_name = "vgg_wafl_raw_iid"
-resnet_dir_name = "resnet_wafl_raw_iid"
-mobilenet_dir_name = "mobile_wafl_raw_iid"
-vit_dir_name = "vit_wafl_raw_iid"
-image_file_name = "comp_WAFL_ML_rwp"
+vgg_dir_name = "vgg_wafl_raw_iid_line"
+resnet_dir_name = "resnet_wafl_raw_iid_line"
+mobilenet_dir_name = "mobile_wafl_raw_iid_line"
+vit_dir_name = "vit_wafl_raw_iid_line"
+image_file_name = "comp_WAFL_ML_line"
 image_path = os.path.join(project_path, "model_comp")  # 出力先のFolder
 
 # 各エポックの精度を記録した配列をloadする。
