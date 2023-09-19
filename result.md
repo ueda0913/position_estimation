@@ -52,6 +52,7 @@
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
 - nohup.out
+- log1.log
 
 ### 2023-09-18-16(lrの減少を早く)
 
@@ -63,6 +64,7 @@
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
 - nohup2.out
+- log2.log
 
 ### 2023-09-1(ノードの出会いを早く)
 
