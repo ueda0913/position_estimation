@@ -72,26 +72,24 @@
 - the maxmize of the last 10 epoch: 0.8027681660899654
 - the minimum of the last 10 epoch: 0.6920415224913494
 
-### 2023-09-1(ノードの出会いを早く)
+### 2023-09-19-11(ノードの出会いを早く)
 
 - vit
 - epoch: 150->3000
 - fl_coefficiency = 0.1
 - SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
-- scheduler(scheduler_step = 1000,scheduler_rate = 0.5,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
-- 延期
+- log1.log
 
-### 2023-09-15-00
+### 2023-09-19-10
 
 - vit
 - epoch: 150->3000
 - fl_coefficiency = 0.1
 - SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
-- scheduler(scheduler_step = 1000,scheduler_rate = 0.5,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 - use_previous_memory
-- the average of the last 10 epoch: 0.7053921568627451
-- the std of the last 10 epoch: 0.05903318991873559
-- 無効
+- nohup.out 
