@@ -2,7 +2,7 @@
 
 ## IIDの結果
 
-### 2023-09-14-15
+### 2023-09-14-15(最初の)
 
 - vit
 - epoch: 150->3000
@@ -13,7 +13,17 @@
 - the average of the last 10 epoch: 0.8372837370242214
 - the std of the last 10 epoch: 0.01707250711501161
 
-### 2023-09-15-23(過去の記憶使用)
+### 2023-09-20-00(lrの減少を早く+ノードの交換の速度をup)
+
+- vit
+- epoch: 150->3000
+- fl_coefficiency = 0.1
+- SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- contact_file = "rwp_n12_a0500_r100_p10_s01.json"
+- log2.log
+
+### 2023-09-15-23(過去の記憶使用+普通の)
 
 - vit
 - epoch: 150->3000
@@ -82,7 +92,10 @@
 - scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
-- log1.log
+- the average of the last 10 epoch: 0.7811130334486736
+- the std of the last 10 epoch: 0.022525415041126918
+- the maxmize of the last 10 epoch: 0.8269896193771626
+- the minimum of the last 10 epoch: 0.726643598615917
 
 ### 2023-09-19-10(lrの減少を早く+過去の記憶使用)
 
