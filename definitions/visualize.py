@@ -58,7 +58,7 @@ def evaluate_history(historys, cur_dir):
         plt.plot(
             historys[i][:, 0],
             historys[i][:, 1],
-            label=f"node{i}(test)",
+            label=f"node{i}(training)",
             linewidth=0.5,
             color=color_list[i * 2],
         )
