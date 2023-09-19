@@ -51,8 +51,11 @@
 - scheduler(scheduler_step = 1000,scheduler_rate = 0.5,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
-- nohup.out
 - log1.log
+- the average of the last 10 epoch: 0.7619088811995386
+- the std of the last 10 epoch: 0.03797441048346648
+- the maxmize of the last 10 epoch: 0.8304498269896193
+- the minimum of the last 10 epoch: 0.6816608996539792
 
 ### 2023-09-18-16(lrの減少を早く)
 
@@ -63,8 +66,11 @@
 - scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
-- nohup2.out
 - log2.log
+- the average of the last 10 epoch: 0.7658304498269896
+- the std of the last 10 epoch: 0.02710190220965939
+- the maxmize of the last 10 epoch: 0.8027681660899654
+- the minimum of the last 10 epoch: 0.6920415224913494
 
 ### 2023-09-1(ノードの出会いを早く)
 

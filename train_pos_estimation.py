@@ -461,14 +461,50 @@ if __name__ == "__main__":
                     pickle.dump(historys, f)
                     print("saving historys...")
 
+                torch.save(
+                    nets[n].state_dict(),
+                    os.path.join(cur_dir, f"params/node{n}_while_training.pth"),
+                )
+                torch.save(
+                    optimizers[n].state_dict(),
+                    os.path.join(
+                        cur_dir, f"params/node{n}_optimizer_while_training.pth"
+                    ),
+                )
+                print(f"Model saving ... at {epoch+1}")
+                nets[n] = nets[n].to(device)
+
             # save models
             if epoch == max_epoch + load_epoch - 1:
+                if os.path.exists(
+                    os.path.join(cur_dir, f"params/node{n}_while_training.pth")
+                ):
+                    os.remove(
+                        os.path.join(cur_dir, f"params/node{n}_while_training.pth")
+                    )
+                if os.path.exists(
+                    os.path.join(
+                        cur_dir, f"params/node{n}_optimizer_while_training.pth"
+                    )
+                ):
+                    os.remove(
+                        os.path.join(
+                            cur_dir, f"params/node{n}_optimizer_while_training.pth"
+                        )
+                    )
+
                 print(f"Model saving ... at {epoch+1}")
                 torch.save(
                     nets[n].state_dict(),
                     os.path.join(cur_dir, f"params/node{n}_epoch-{epoch+1:04d}.pth"),
                 )
                 nets[n] = nets[n].to(device)
+                torch.save(
+                    optimizers[n].state_dict(),
+                    os.path.join(
+                        cur_dir, f"params/node{n}_optimizer_epoch-{epoch+1:04d}.pth"
+                    ),
+                )
                 print(
                     f"former exchange: {former_exchange_num}"
                 )  # to confirm how many times exchange with former one
