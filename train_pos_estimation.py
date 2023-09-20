@@ -80,7 +80,7 @@ contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 # contact_file = 'meet_at_once_t10000.json'
 
 ## select train mode
-use_previous_memory = False  # use the past memory
+use_previous_memory = True  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
 is_train_only = False  # use to load pre-trained data and start training from scratch
 is_restart = False  # use to load traied_data and add training
