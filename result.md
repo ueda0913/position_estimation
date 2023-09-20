@@ -13,6 +13,16 @@
 - the average of the last 10 epoch: 0.8372837370242214
 - the std of the last 10 epoch: 0.01707250711501161
 
+### 2023-09-20-07(lrの減少を早く)
+
+- vit
+- epoch: 150->3000
+- fl_coefficiency = 0.1
+- SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.5,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+- nohup3.out
+
 ### 2023-09-20-00(lrの減少を早く+ノードの交換の速度をup)
 
 - vit
@@ -134,4 +144,7 @@
 - contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
 - use_previous_memory
-- nohup2.out(過去記憶使用の効果が低減？)
+- the average of the last 10 epoch: 0.7814013840830449
+- the std of the last 10 epoch: 0.025799082966628365
+- the maxmize of the last 10 epoch: 0.8304498269896193
+- the minimum of the last 10 epoch: 0.740484429065744

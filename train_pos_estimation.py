@@ -74,7 +74,7 @@ filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p10_s01.json"
+contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
