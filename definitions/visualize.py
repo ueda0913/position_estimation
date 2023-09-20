@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import umap
+from sklearn.metrics import confusion_matrix
 
 
 def evaluate_history(historys, cur_dir):
@@ -111,20 +112,19 @@ def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_i
     else:
         plt.figure(figsize=(20, 15))
         row_num = (
-            loader.batch_size // 75
-            if loader.batch_size % 75 == 0
-            else loader.batch_size // 75 + 1
+            int(len(loader.dataset) * 0.3) // 10
+            if len(loader.dataset) * 0.3 % 10 == 0
+            else int(len(loader.dataset) * 0.3) // 10 + 1
         )
     index = 0
     wrong_data_num = 0
     for images, labels in loader:
         n_size = len(images)
         if net is not None:
-            if images.device == "cpu":
-                images = images.to(device)
-                # labels = labels.to(device)
+            inputs = images.to(device)
+            labels = labels.to(device)
             net.eval()
-            outputs = net(images)
+            outputs = net(inputs)
             predicted = torch.max(outputs, 1)[1]
             images = images.to("cpu")
         else:
@@ -132,14 +132,20 @@ def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_i
             labels = labels.to("cpu")
 
         for i in range(n_size):
-            ax = plt.subplot(row_num, 10, index * n_size + i + 1)
             label_name = classes[labels[i]]
+            predicted_name = classes[predicted[i]]
+            if all_images:
+                ax = plt.subplot(row_num, 10, index * n_size + i + 1)
+            elif label_name != predicted_name:
+                ax = plt.subplot(row_num, 10, wrong_data_num + 1)
+            else:
+                continue
             if net is not None:
-                predicted_name = classes[predicted[i]]
                 if label_name == predicted_name:
                     c = "k"
                 else:
                     c = "b"
+                    wrong_data_num += 1
                 ax.set_title(label_name + ":" + predicted_name, c=c, fontsize=20)
             else:
                 ax.set_title(label_name, fontsize=20)
@@ -149,8 +155,6 @@ def show_image_labels(loader, classes, net, device, loaded_epoch, cur_dir, all_i
             img = (img + 1) / 2
             plt.imshow(img)
             ax.set_axis_off()
-        if not all_images:
-            break
         index += 1
     plt.savefig(
         os.path.join(cur_dir, f"images/sample_images/si-epoch-{loaded_epoch}.png"),
@@ -247,3 +251,76 @@ def calc_res_mean_and_std(histories):  # 後ろ10epochの結果の平均と分�
     max_acc = max(raw_data)
     min_acc = min(raw_data)
     return mean, std, max_acc, min_acc
+
+
+def train_for_cmls(cur_dir, epoch, n, classes, net, criterion, test_loader, device):
+    n_val_acc = 0
+    val_loss = 0
+    n_test = 0
+    y_preds = []  # for confusion_matrix
+    y_tests = []
+    y_outputs = []
+    net.eval()
+    for inputs_test, labels_test in test_loader:
+        test_batch_size = len(labels_test)
+        n_test += test_batch_size
+        if inputs_test.device == "cpu":
+            inputs_test = inputs_test.to(device)
+            labels_test = labels_test.to(device)
+
+        outputs_test = net(inputs_test)
+        # outputs_test2 = tmp_net(inputs_test)
+        loss_test = criterion(outputs_test, labels_test)
+
+        predicted_test = torch.max(outputs_test, 1)[1]
+        y_preds.extend(predicted_test.tolist())
+        y_tests.extend(labels_test.tolist())
+        y_outputs.extend(outputs_test.tolist())
+        # z_outputs.extend(outputs_test2.tolist())
+        val_loss += loss_test.item() * test_batch_size
+        n_val_acc += (predicted_test == labels_test).sum().item()
+
+    # make confusion matrix
+    # cm_dir_path = os.path.join(cur_dir, "images/confusion_matrix")
+    # if not (os.path.exists(cm_dir_path)) or os.path.isfile(cm_dir_path):
+    #     os.makedirs(cm_dir_path)
+    normalized_cm_dir_path = os.path.join(cur_dir, "images/normalized_confusion_matrix")
+    if not (os.path.exists(normalized_cm_dir_path)) or os.path.isfile(
+        normalized_cm_dir_path
+    ):
+        os.makedirs(normalized_cm_dir_path)
+    confusion_mtx = confusion_matrix(y_tests, y_preds)
+    # save_confusion_matrix(
+    #     confusion_mtx,
+    #     classes=classes,
+    #     normalize=False,
+    #     title=f"Confusion Matrix at {epoch+1:d}epoch (node{n})",
+    #     cmap=plt.cm.Reds,
+    #     save_path=os.path.join(
+    #         cur_dir, f"images/confusion_matrix/cm-epoch-{epoch+1:04d}-node{n}.png"
+    #     ),
+    # )
+    print("Saving confusion matrix...")
+    save_confusion_matrix(
+        confusion_mtx,
+        classes=classes,
+        normalize=True,
+        title=f"Normalized Confusion Matrix at {epoch+1:d}epoch (node{n})",
+        cmap=plt.cm.Reds,
+        save_path=os.path.join(
+            cur_dir,
+            f"images/normalized_confusion_matrix/normalized-cm-epoch{epoch+1:04d}-node{n}.png",
+        ),
+    )
+
+    # make ls
+    ls_dir_path = os.path.join(cur_dir, "images/latent_space")
+    if not (os.path.exists(ls_dir_path)) or os.path.isfile(ls_dir_path):
+        os.makedirs(ls_dir_path)
+    make_latent_space(
+        y_tests,
+        y_outputs,
+        epoch + 1,
+        os.path.join(ls_dir_path, f"ls-epoch{epoch+1:4d}-node{n}.png"),
+        n,
+    )

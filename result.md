@@ -21,7 +21,10 @@
 - SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
 - scheduler(scheduler_step = 750,scheduler_rate = 0.5,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
-- nohup3.out
+- the average of the last 10 epoch: 0.8408881199538639
+- the std of the last 10 epoch: 0.007425158811673623
+- the maxmize of the last 10 epoch: 0.8512110726643599
+- the minimum of the last 10 epoch: 0.8166089965397924
 
 ### 2023-09-20-00(lrの減少を早く+ノードの交換の速度をup)
 
@@ -50,6 +53,20 @@
 - the maxmize of the last 10 epoch: 0.8685121107266436
 - the minimum of the last 10 epoch: 0.7508650519031141
 
+### 2023-09-20-16(lrの減少を早く+過去の記憶使用)
+
+- vit
+- epoch: 150->3000
+- fl_coefficiency = 0.1
+- SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+- use_previous_memory
+- the average of the last 10 epoch: 0.8334198385236448
+- the std of the last 10 epoch: 0.006073233385436657
+- the maxmize of the last 10 epoch: 0.8442906574394463
+- the minimum of the last 10 epoch: 0.8166089965397924
+
 ### 2023-09-20-13(lrの減少を早く+ノードの交換の速度をup+過去の記憶使用)
 
 - vit
@@ -60,6 +77,7 @@
 - contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 - use_previous_memory
 - log1.log
+
 ## Non-IIDの結果
 
 ### 2023-09-14-08

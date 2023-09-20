@@ -9,21 +9,16 @@ from definitions.net import select_net
 from definitions.visualize import show_image_labels
 from torch.utils.data import DataLoader
 from torchvision import models
-from train_pos_estimation import (
-    data_dir,
-    model_name,
-    n_middle,
-    n_node,
-    project_path,
-    useGPUinTrans,
-)
+from train_pos_estimation import data_dir, n_middle, n_node, project_path
 
 ###change area
 epoch = 3000
-static_date_index = "2023-09-07-12"  # trained epoch to load
+static_date_index = "vit_wafl_raw_iid_ringstar"  # trained epoch to load
 batch_size = 16
-all_images = True
-node = 3  # node num
+all_images = False
+useGPUinTrans = True
+node = 6  # node num
+model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 
 
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")

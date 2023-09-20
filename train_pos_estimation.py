@@ -439,7 +439,6 @@ if __name__ == "__main__":
                     cur_dir,
                     epoch,
                     n,
-                    cur_time_index,
                     classes,
                     nets[n],
                     criterion,

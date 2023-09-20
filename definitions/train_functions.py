@@ -11,12 +11,10 @@ import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.optim as optim
 import torchvision.datasets as datasets
 import torchvision.io as io
 import torchvision.transforms as transforms
 from definitions.visualize import *
-from sklearn.metrics import confusion_matrix
 
 # time_index = datetime.now().strftime("%Y-%m-%d-%H")
 
@@ -266,104 +264,3 @@ def search_mean_and_std(datapath):
     mean /= total_samples
     std /= total_samples
     return mean, std
-
-
-def train_for_cmls(
-    cur_dir, epoch, n, cur_time_index, classes, net, criterion, test_loader, device
-):
-    n_val_acc = 0
-    val_loss = 0
-    n_test = 0
-    y_preds = []  # for confusion_matrix
-    y_tests = []
-    y_outputs = []
-    net.eval()
-    for inputs_test, labels_test in test_loader:
-        test_batch_size = len(labels_test)
-        n_test += test_batch_size
-        if inputs_test.device == "cpu":
-            inputs_test = inputs_test.to(device)
-            labels_test = labels_test.to(device)
-
-        outputs_test = net(inputs_test)
-        # outputs_test2 = tmp_net(inputs_test)
-        loss_test = criterion(outputs_test, labels_test)
-
-        predicted_test = torch.max(outputs_test, 1)[1]
-        y_preds.extend(predicted_test.tolist())
-        y_tests.extend(labels_test.tolist())
-        y_outputs.extend(outputs_test.tolist())
-        # z_outputs.extend(outputs_test2.tolist())
-        val_loss += loss_test.item() * test_batch_size
-        n_val_acc += (predicted_test == labels_test).sum().item()
-
-    # make confusion matrix
-    # cm_dir_path = os.path.join(cur_dir, "images/confusion_matrix")
-    # if not (os.path.exists(cm_dir_path)) or os.path.isfile(cm_dir_path):
-    #     os.makedirs(cm_dir_path)
-    normalized_cm_dir_path = os.path.join(cur_dir, "images/normalized_confusion_matrix")
-    if not (os.path.exists(normalized_cm_dir_path)) or os.path.isfile(
-        normalized_cm_dir_path
-    ):
-        os.makedirs(normalized_cm_dir_path)
-    confusion_mtx = confusion_matrix(y_tests, y_preds)
-    # save_confusion_matrix(
-    #     confusion_mtx,
-    #     classes=classes,
-    #     normalize=False,
-    #     title=f"Confusion Matrix in {cur_time_index} at {epoch+1:d}epoch (node{n})",
-    #     cmap=plt.cm.Reds,
-    #     save_path=os.path.join(
-    #         cur_dir, f"images/confusion_matrix/cm-epoch-{epoch+1:04d}-node{n}.png"
-    #     ),
-    # )
-    print("Saving confusion matrix...")
-    save_confusion_matrix(
-        confusion_mtx,
-        classes=classes,
-        normalize=True,
-        title=f"Normalized Confusion Matrix in {cur_time_index} at {epoch+1:d}epoch (node{n})",
-        cmap=plt.cm.Reds,
-        save_path=os.path.join(
-            cur_dir,
-            f"images/normalized_confusion_matrix/normalized-cm-epoch{epoch+1:04d}-node{n}.png",
-        ),
-    )
-
-    # make ls
-    ls_dir_path = os.path.join(cur_dir, "images/latent_space")
-    if not (os.path.exists(ls_dir_path)) or os.path.isfile(ls_dir_path):
-        os.makedirs(ls_dir_path)
-    make_latent_space(
-        y_tests,
-        y_outputs,
-        epoch + 1,
-        os.path.join(ls_dir_path, f"ls-epoch{epoch+1:4d}-node{n}.png"),
-        n,
-    )
-
-
-def select_optimizer(model_name, net, optimizer_name, lr, momentum=None):
-    if optimizer_name == "SGD":
-        if model_name == "vgg19_bn":
-            optimizer = optim.SGD(
-                net.classifier[6].parameters(), lr=lr, momentum=momentum
-            )
-        elif model_name == "resnet_152":
-            optimizer = optim.SGD(net.fc.parameters(), lr=lr, momentum=momentum)
-        elif model_name == "mobilenet_v2":
-            optimizer = optim.SGD(
-                net.classifier[1].parameters(), lr=lr, momentum=momentum
-            )
-        elif model_name == "vit_b16":
-            optimizer = optim.SGD(net.heads.parameters(), lr=lr, momentum=momentum)
-    elif optimizer_name == "Adam":
-        if model_name == "vgg19_bn":
-            optimizer = optim.Adam(net.classifier[6].parameters(), lr=lr)
-        elif model_name == "resnet_152":
-            optimizer = optim.Adam(net.fc.parameters(), lr=lr)
-        elif model_name == "mobilenet_v2":
-            optimizer = optim.Adam(net.classifier[1].parameters(), lr=lr)
-        elif model_name == "vit_b16":
-            optimizer = optim.Adam(net.heads.parameters(), lr=lr)
-    return optimizer

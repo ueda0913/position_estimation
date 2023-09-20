@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch.optim as optim
 import torchvision.models as models
 
 
@@ -65,3 +66,29 @@ def select_net(model_name, n_node, n_middle):
     elif model_name == "vit_b16":
         net = Net_vit_b16(n_node, n_middle)
     return net
+
+
+def select_optimizer(model_name, net, optimizer_name, lr, momentum=None):
+    if optimizer_name == "SGD":
+        if model_name == "vgg19_bn":
+            optimizer = optim.SGD(
+                net.classifier[6].parameters(), lr=lr, momentum=momentum
+            )
+        elif model_name == "resnet_152":
+            optimizer = optim.SGD(net.fc.parameters(), lr=lr, momentum=momentum)
+        elif model_name == "mobilenet_v2":
+            optimizer = optim.SGD(
+                net.classifier[1].parameters(), lr=lr, momentum=momentum
+            )
+        elif model_name == "vit_b16":
+            optimizer = optim.SGD(net.heads.parameters(), lr=lr, momentum=momentum)
+    elif optimizer_name == "Adam":
+        if model_name == "vgg19_bn":
+            optimizer = optim.Adam(net.classifier[6].parameters(), lr=lr)
+        elif model_name == "resnet_152":
+            optimizer = optim.Adam(net.fc.parameters(), lr=lr)
+        elif model_name == "mobilenet_v2":
+            optimizer = optim.Adam(net.classifier[1].parameters(), lr=lr)
+        elif model_name == "vit_b16":
+            optimizer = optim.Adam(net.heads.parameters(), lr=lr)
+    return optimizer
