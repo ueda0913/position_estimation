@@ -76,7 +76,10 @@
 - scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 - use_previous_memory
-- log1.log
+- the average of the last 10 epoch: 0.8517589388696655
+- the std of the last 10 epoch: 0.007035703838325886
+- the maxmize of the last 10 epoch: 0.8650519031141869
+- the minimum of the last 10 epoch: 0.8373702422145328
 
 ## Non-IIDの結果
 
