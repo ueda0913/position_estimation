@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 project_path = "../data-raid/static/WAFL_pos_estimation"
 dir_name = "2023-09-18-16"
 image_file_name = "node_avg"
-image_path = os.path.join(project_path, "2023-09-18-16/images")  # 出力先のFolder
+image_path = os.path.join(project_path, dir_name, "images")  # 出力先のFolder
 
 # 各エポックの精度を記録した配列をloadする。
 with open(
@@ -36,6 +36,7 @@ for node in range(0, n_node):
         max_index = node
     if his[node][-1][4] < his[min_index][-1][4]:
         min_index = node
+print(f"max:{max_index}, min:{min_index}")
 # plotする
 epoch_array = [i for i in range(0, num_epoch)]
 plt.plot(epoch_array, vit_avg, label="Average")

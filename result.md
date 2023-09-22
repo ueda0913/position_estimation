@@ -83,19 +83,6 @@
 
 ## Non-IIDの結果
 
-### 2023-09-14-08
-
-- vit
-- epoch: 150->3000
-- fl_coefficiency = 0.1
-- SGD(lr=0.005,momentum = 0.9,pretrain_lr = 0.005,pretrain_momentum = 0.9)
-- schedulerなし
-- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
-- filter:filter_rate = 70,filter_seed = 1
-- the average of the last 10 epoch: 0.5981833910034602
-- the std of the last 10 epoch: 0.11724919125144062
-- ミス発覚により無効
-
 ### 2023-09-18-15(一番最初のやつ)
 
 - vit
