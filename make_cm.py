@@ -9,10 +9,10 @@ from torch.utils.data import DataLoader
 
 ## change area
 epoch = 3000
-node = 6
+node = 8
 batch_size = 16
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
-load_dir_name = "vit_wafl_raw_iid_line"
+load_dir_name = "2023-09-19-21"
 n_middle = 256
 criterion = torch.nn.CrossEntropyLoss()
 

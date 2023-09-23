@@ -7,7 +7,7 @@ import numpy as np
 project_path = "../data-raid/static/WAFL_pos_estimation"
 
 # change area
-load_dir_name = "2023-09-19-11"
+load_dir_name = "2023-09-19-21"
 filename = "validation-only"
 
 
