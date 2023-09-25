@@ -7,7 +7,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 project_path = "../data-raid/static/WAFL_pos_estimation"
-dir_name = "2023-09-19-10"
+dir_name = "2023-09-19-11"
 image_file_name = "node_avg"
 image_path = os.path.join(project_path, dir_name, "images")  # 出力先のFolder
 
@@ -40,8 +40,18 @@ print(f"max:{max_index}, min:{min_index}")
 # plotする
 epoch_array = [i for i in range(0, num_epoch)]
 plt.plot(epoch_array, vit_avg, label="Average")
-plt.plot(epoch_array, his[min_index][:, 4], label="Minimum node", linewidth=0.75)
-plt.plot(epoch_array, his[max_index][:, 4], label="Maximum node", linewidth=0.75)
+plt.plot(
+    epoch_array,
+    his[min_index][:, 4],
+    label=f"Minimum node (node{min_index})",
+    linewidth=0.75,
+)
+plt.plot(
+    epoch_array,
+    his[max_index][:, 4],
+    label=f"Maximum node (node{max_index})",
+    linewidth=0.75,
+)
 plt.xlabel("Epoch")
 plt.ylabel("Accuracy")
 plt.xlim([-100, 3100])
