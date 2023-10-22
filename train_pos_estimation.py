@@ -60,8 +60,9 @@ pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # cos similarity
-use_cos_similarity = True
-st_fl_coefficiency = 0.1  # 使わない場合の値
+use_cos_similarity = False
+st_fl_coefficiency = 0.2  # 使わない場合の値
+sat_epoch = 2500  # cos類似度を使わなくなるepoch
 
 # schedulers
 use_scheduler = True  # if do not use scheduler, False here
@@ -77,13 +78,13 @@ filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 # contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
 ## select train mode
-use_previous_memory = True  # use the past memory
+use_previous_memory = False  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
 is_train_only = False  # use to load pre-trained data and start training from scratch
 is_restart = False  # use to load traied_data and add training
@@ -332,6 +333,9 @@ if __name__ == "__main__":
             f.write(f"pre-training sheduler step: {pretrain_schedulers[0].step_size}\n")
             f.write(f"pre-training sheduler gamma: {pretrain_schedulers[0].gamma}\n")
         f.write(f"use previous memory: {use_previous_memory}\n")
+        f.write(f"use cosine similarity: {use_cos_similarity}\n")
+        if not use_cos_similarity:
+            f.write(f"fl_coefficiency: {st_fl_coefficiency}\n")
         f.write(f"pre_train_only: {is_pre_train_only}\n")
         f.write(f"net:\n {summary(nets[0], (1,3,224,224), verbose=False)}\n")
 
@@ -403,7 +407,13 @@ if __name__ == "__main__":
                 former_exchange_num,
             )
         model_exchange(
-            nets, model_name, contact, use_cos_similarity, st_fl_coefficiency
+            nets,
+            model_name,
+            contact,
+            use_cos_similarity,
+            st_fl_coefficiency,
+            epoch,
+            sat_epoch,
         )
 
         for n in range(n_node):

@@ -113,10 +113,7 @@ def update_nets_res(
 
 
 def update_nets_vit(
-    nets,
-    contact,
-    use_cos_similarity,
-    fl_coefficiency,
+    nets, contact, use_cos_similarity, fl_coefficiency, epoch, sat_epoch
 ):  # sはn番目の要素に複数のmodelがあるかで決まる
     n_node = len(contact)
     local_model = [{} for i in range(n_node)]
@@ -142,10 +139,12 @@ def update_nets_vit(
         for k in range(n_nbr):
             if use_cos_similarity:
                 # TODOこの与え方とかも考えないと不味そう
-                cos_similarity = calc_cos_similarity(
-                    local_model[n],
+                # とりあえず最初はcos類似度に対し線形に変化し、その変化が徐々に小さくなるようにしていく
+                cos_similarity = calc_cos_similarity(local_model[n], recv_models[n][k])
+                epoch_rate = float(sat_epoch - epoch) / sat_epoch
+                fl_coefficiency = 0.3 * epoch_rate * cos_similarity + 0.15 * (
+                    1 - epoch_rate
                 )
-                fl_coefficiency = 0.5 * cos_similarity
             for key in update_model[k]:
                 if local_model[n][key].dtype is torch.float32:
                     local_model[n][key] += (
@@ -220,14 +219,16 @@ def update_nets_mobile(
 
 
 def model_exchange(
-    nets, model_name, contact, use_cos_similarity, st_fl_coefficiency
+    nets, model_name, contact, use_cos_similarity, st_fl_coefficiency, epoch, sat_epoch
 ):  # cos similarity is now only for vit
     if model_name == "vgg19_bn":
         update_nets_vgg(nets, contact, st_fl_coefficiency)
     elif model_name == "resnet_152":
         update_nets_res(nets, contact, st_fl_coefficiency)
     elif model_name == "vit_b16":
-        update_nets_vit(nets, contact, use_cos_similarity, st_fl_coefficiency)
+        update_nets_vit(
+            nets, contact, use_cos_similarity, st_fl_coefficiency, epoch, sat_epoch
+        )
     elif model_name == "mobilenet_v2":
         update_nets_mobile(nets, contact, st_fl_coefficiency)
 
