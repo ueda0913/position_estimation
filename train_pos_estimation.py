@@ -52,13 +52,16 @@ pre_train_epoch = 150
 batch_size = 16
 n_node = 12
 n_middle = 256
-fl_coefficiency = 0.1
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
 lr = 0.05
 momentum = 0.9
 pretrain_lr = 0.05
 pretrain_momentum = 0.9
+
+# cos similarity
+use_cos_similarity = True
+st_fl_coefficiency = 0.1  # 使わない場合の値
 
 # schedulers
 use_scheduler = True  # if do not use scheduler, False here
@@ -389,8 +392,7 @@ if __name__ == "__main__":
         load_epoch, max_epoch + load_epoch
     ):  # loop over the dataset multiple times
         contact = contact_list[epoch]
-
-        # below row are used to use previous memory
+        # below row are used to use previous memory(now only for vit)
         if use_previous_memory:
             model_exchange_with_former_vit(
                 former_contact,
@@ -400,7 +402,9 @@ if __name__ == "__main__":
                 counters,
                 former_exchange_num,
             )
-        model_exchange(nets, model_name, contact, fl_coefficiency)
+        model_exchange(
+            nets, model_name, contact, use_cos_similarity, st_fl_coefficiency
+        )
 
         for n in range(n_node):
             nbr = contact[str(n)]
