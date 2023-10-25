@@ -27,33 +27,6 @@ from definitions.visualize import *
 # np.set_printoptions(suppress=True, precision=5)
 
 
-class MyGPUdatasetFolder(
-    datasets.DatasetFolder
-):  # use when put data on GPU in __getitem__
-    IMG_EXTENTIONS = [".jpg", ".jpeg", ".png"]
-
-    def __init__(self, root, device, transform=None):
-        super().__init__(
-            root, loader=self.custom_loader, extensions=self.IMG_EXTENTIONS
-        )
-        self.transform = transform
-        self.device = device
-
-    def custom_loader(self, path):
-        return io.read_image(path) / 255.0
-
-    def __getitem__(self, index):
-        data, label = super().__getitem__(index)
-        data = data.to(self.device)
-        label = (torch.tensor(label)).to(self.device)
-        if self.transform is not None:
-            data = self.transform(data)
-        return data, label
-
-    def __len__(self):
-        return len(self.samples)
-
-
 def pre_train(
     nets,
     train_loaders,
@@ -145,28 +118,30 @@ def fit(
     history,
     cur_epoch,
     cur_node,
+    evaluate_only="False",
 ):
     n_train_acc, n_val_acc = 0, 0
     train_loss, val_loss = 0, 0
     n_train, n_test = 0, 0
 
-    net.train()
-    for inputs, labels in train_loader:
-        train_batch_size = len(labels)
-        n_train += train_batch_size
-        if inputs.device == "cpu":
-            inputs = inputs.to(device)
-            labels = labels.to(device)
+    if not evaluate_only:
+        net.train()
+        for inputs, labels in train_loader:
+            train_batch_size = len(labels)
+            n_train += train_batch_size
+            if inputs.device == "cpu":
+                inputs = inputs.to(device)
+                labels = labels.to(device)
 
-        optimizer.zero_grad()
-        outputs = net(inputs)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
 
-        predicted = torch.max(outputs, 1)[1]
-        train_loss += loss.item() * train_batch_size
-        n_train_acc += (predicted == labels).sum().item()
+            predicted = torch.max(outputs, 1)[1]
+            train_loss += loss.item() * train_batch_size
+            n_train_acc += (predicted == labels).sum().item()
 
     net.eval()
     for inputs_test, labels_test in test_loader:

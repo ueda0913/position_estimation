@@ -1,5 +1,6 @@
 import torch
 import torch.nn as nn
+from definitions.net import Net_vit_b16
 
 
 def calc_cos_similarity(net1, net2):  # 入力は学習しているパラメータを取り出したstate_dict
@@ -142,9 +143,13 @@ def update_nets_vit(
                 # とりあえず最初はcos類似度に対し線形に変化し、その変化が徐々に小さくなるようにしていく
                 cos_similarity = calc_cos_similarity(local_model[n], recv_models[n][k])
                 epoch_rate = float(sat_epoch - epoch) / sat_epoch
-                fl_coefficiency = 0.3 * epoch_rate * cos_similarity + 0.15 * (
+                fl_coefficiency = 0.3 * epoch_rate * (cos_similarity + 1) / 2 + 0.15 * (
                     1 - epoch_rate
                 )
+                if epoch % 100 == 99:
+                    print(
+                        f"cos_similarity between node-{n} and node-{k} in epoch{epoch}: {cos_similarity}\n"
+                    )
             for key in update_model[k]:
                 if local_model[n][key].dtype is torch.float32:
                     local_model[n][key] += (

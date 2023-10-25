@@ -60,7 +60,7 @@ pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # cos similarity
-use_cos_similarity = False
+use_cos_similarity = True
 st_fl_coefficiency = 0.2  # 使わない場合の値
 sat_epoch = 2500  # cos類似度を使わなくなるepoch
 
@@ -73,7 +73,7 @@ pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = False
+is_use_noniid_filter = True
 filter_rate = 70
 filter_seed = 1
 
