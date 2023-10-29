@@ -43,7 +43,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = "2023-09-18-15"
+# cur_time_index = "2023-10-25-10"
 device = torch.device(
     "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -60,8 +60,8 @@ pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # cos similarity
-use_cos_similarity = True
-st_fl_coefficiency = 0.2  # 使わない場合の値
+use_cos_similarity = False
+st_fl_coefficiency = 0.1  # 使わない場合の値
 sat_epoch = 2500  # cos類似度を使わなくなるepoch
 
 # schedulers
@@ -73,12 +73,12 @@ pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = True
+is_use_noniid_filter = False
 filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p10_s01.json"
+contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
@@ -382,15 +382,13 @@ if __name__ == "__main__":
         contact_list = json.load(f)
 
     # below 3 rows are used to use previous memory
-    former_contact = contact_list[0]
-    former_nets = []
     if use_previous_memory:
-        for n in range(len(nets)):  # for vit
-            former_nets.append(nets[n].heads.state_dict())
-    counters = [0 for _ in range(n_node)]
-    former_exchange_num = [
-        0 for _ in range(n_node)
-    ]  # how many times exchange with former one
+        former_contact = {str(i): [] for i in range(n_node)}
+        former_nets = [{} for _ in range(n_node)]
+        counters = [0 for _ in range(n_node)]
+        former_exchange_num = [
+            0 for _ in range(n_node)
+        ]  # how many times exchange with former one
 
     for epoch in range(
         load_epoch, max_epoch + load_epoch
@@ -398,13 +396,14 @@ if __name__ == "__main__":
         contact = contact_list[epoch]
         # below row are used to use previous memory(now only for vit)
         if use_previous_memory:
-            model_exchange_with_former_vit(
+            model_exchange_with_former(
                 former_contact,
                 contact,
                 former_nets,
                 nets,
                 counters,
                 former_exchange_num,
+                model_name,
             )
         model_exchange(
             nets,
@@ -518,9 +517,10 @@ if __name__ == "__main__":
                         cur_dir, f"params/node{n}_optimizer_epoch-{epoch+1:04d}.pth"
                     ),
                 )
-                print(
-                    f"former exchange: {former_exchange_num}"
-                )  # to confirm how many times exchange with former one
+                if use_previous_memory:
+                    print(
+                        f"former exchange: {former_exchange_num}"
+                    )  # to confirm how many times exchange with former one
 
             # update scheduler
             if schedulers != None:

@@ -118,7 +118,7 @@ def fit(
     history,
     cur_epoch,
     cur_node,
-    evaluate_only="False",
+    evaluate_only=False,
 ):
     n_train_acc, n_val_acc = 0, 0
     train_loss, val_loss = 0, 0
@@ -158,9 +158,10 @@ def fit(
         val_loss += loss_test.item() * test_batch_size
         n_val_acc += (predicted_test == labels_test).sum().item()
 
-    train_acc = n_train_acc / n_train
+    if not evaluate_only:
+        train_acc = n_train_acc / n_train
+        avg_train_loss = train_loss / n_train
     val_acc = n_val_acc / n_test
-    avg_train_loss = train_loss / n_train
     avg_val_loss = val_loss / n_test
     print(
         f"Epoch [{cur_epoch+1}], Node [{cur_node}], loss: {avg_train_loss:.5f} acc: {train_acc:.5f} val_loss: {avg_val_loss:.5f} val_acc: {val_acc:.5f}"
