@@ -1,6 +1,5 @@
 import os
 
-from torch.utils.data.dataset import Subset
 from torchinfo import summary
 
 

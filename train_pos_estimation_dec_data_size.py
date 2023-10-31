@@ -534,7 +534,6 @@ if __name__ == "__main__":
         f.write(f"the std of the last 10 epoch: {std}\n")
         f.write(f"the maxmize of the last 10 epoch: {max_acc}\n")
         f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
-        if use_previous_memory:
-            f.write(f"Usage of previous memory: {former_exchange_num}\n")
+        f.write(f"Usage of previous memory: {former_exchange_num}\n")
     evaluate_history(historys, cur_dir)
     print("Finished Training")

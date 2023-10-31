@@ -158,7 +158,7 @@ def update_nets_vit(
                 fl_coefficiency = 0.3 * epoch_rate * (cos_similarity + 1) / 2 + 0.15 * (
                     1 - epoch_rate
                 )
-                if epoch % 1 == 0:
+                if epoch % 100 == 99:
                     print(
                         f"cos_similarity between node-{n} and node-{contact[str(n)][k]} in epoch{epoch}: {cos_similarity}\n"
                     )
