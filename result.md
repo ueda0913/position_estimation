@@ -177,7 +177,40 @@
 - the maxmize of the last 10 epoch: 0.8166089965397924
 - the minimum of the last 10 epoch: 0.726643598615917
 
-### どれだけ過去パラが使われているのかの検証
+### 2023-11-02-00 (データ数を削減してIIDのような状態に)
+
+- vit
+- epoch: 150->3000
+- fl_coefficiency: 0.1
+- 過去パラメータなし
+- データ数削減あり
+- SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+- filter:filter_rate = 70,filter_seed = 1
+- the average of the last 10 epoch: 0.7874855824682815
+- the std of the last 10 epoch: 0.010175869583695703
+- the maxmize of the last 10 epoch: 0.8131487889273357
+- the minimum of the last 10 epoch: 0.7681660899653979
+
+### 2023-11-02-11 (データ数を削減してIIDのような状態に + 過去パラメータ)
+
+- vit
+- epoch: 150->3000
+- fl_coefficiency: 0.1
+- 過去パラメータあり
+- データ数削減あり
+- SGD(lr=0.05,momentum = 0.9,pretrain_lr = 0.05,pretrain_momentum = 0.9)
+- scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
+- contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+- filter:filter_rate = 70,filter_seed = 1
+- nohup.out
+
+## どれだけ過去パラが使われているのかの検証
 
 - p40: [2798, 2783, 2796, 2785, 2789, 2772, 2782, 2769, 2791, 2777, 2761, 2798]
 - p10: [2683, 2699, 2713, 2672, 2695, 2713, 2663, 2680, 2692, 2669, 2710, 2733]
+
+## ieee用
+
+- vgg: gpu2(nohup.out), resnet:gpu1, mobilenet:gpu1

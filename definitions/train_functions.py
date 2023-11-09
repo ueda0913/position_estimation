@@ -6,15 +6,15 @@ import warnings
 warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 
-import japanize_matplotlib
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
 import torchvision.datasets as datasets
 import torchvision.io as io
 import torchvision.transforms as transforms
+from definitions.mydataset import *
 from definitions.visualize import *
+from torch.utils.data import DataLoader
 
 # time_index = datetime.now().strftime("%Y-%m-%d-%H")
 
@@ -240,3 +240,40 @@ def search_mean_and_std(datapath):
     mean /= total_samples
     std /= total_samples
     return mean, std
+
+
+def make_trainloader(subset, means, stds, batch_size, g):
+    trainloader = []
+    for i in range(len(subset)):
+        mean = means[i]
+        mean = mean.tolist()
+        std = stds[i]
+        std = std.tolist()
+        train_transform = transforms.Compose(
+            [
+                transforms.RandomResizedCrop(size=224, scale=(0.4, 1.0)),
+                # transforms.RandomCrop(224),
+                transforms.ConvertImageDtype(torch.float32),
+                transforms.Normalize(mean=tuple(mean), std=tuple(std)),
+                # transforms.Normalize(0.5, 0.5)
+                transforms.RandomErasing(
+                    p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False
+                ),
+            ]
+        )
+        train_dataset_new = FromSubsetDataset(
+            subset[i],
+            transform=train_transform,
+        )
+        trainloader.append(
+            DataLoader(
+                train_dataset_new,
+                batch_size=batch_size,
+                shuffle=True,
+                num_workers=0,
+                pin_memory=False,
+                worker_init_fn=seed_worker,
+                generator=g,
+            )
+        )
+    return trainloader

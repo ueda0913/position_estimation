@@ -1,17 +1,13 @@
-import copy
 import json
 import os
 import pickle
 import warnings
 from datetime import datetime
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from definitions.make_log import *
 from definitions.model_exchange import *
@@ -19,11 +15,8 @@ from definitions.mydataset import *
 from definitions.net import *
 from definitions.train_functions import *
 from definitions.visualize import *
-from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
-from torchinfo import summary
-from torchvision.datasets import ImageFolder
 
 warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
@@ -74,7 +67,7 @@ pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = False
+is_use_noniid_filter = True  # ここは必ずtrue
 filter_rate = 70
 filter_seed = 1
 
@@ -85,7 +78,7 @@ contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file = 'meet_at_once_t10000.json'
 
 ## select train mode
-use_previous_memory = False  # use the past memory
+use_previous_memory = True  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
 is_train_only = False  # use to load pre-trained data and start training from scratch
 is_restart = False  # use to load traied_data and add training
@@ -170,48 +163,16 @@ for i in range(n_node):
 subset = [Subset(train_data, indices[i]) for i in range(n_node)]
 
 # print data distribution
-nums = [[0 for i in range(n_node)] for j in range(n_node)]
+indexes = [[[] for _ in range(n_node)] for _ in range(n_node)]
 for i in range(n_node):
     for j in range(len(subset[i])):
         image, label = subset[i][j]
-        nums[i][int(label)] += 1
-    print(f"train_data of node_{i}: {nums[i]}\n")
+        indexes[i][int(label)].append(indices[i][j])
+    print(f"train_data of node_{i}: {[len(indexes[i][j]) for j in range(n_node)]}\n")
 
 
 # make train_data_loader
-trainloader = []
-for i in range(len(subset)):
-    mean = means[i]
-    mean = mean.tolist()
-    std = stds[i]
-    std = std.tolist()
-    train_transform = transforms.Compose(
-        [
-            transforms.RandomResizedCrop(size=224, scale=(0.4, 1.0)),
-            # transforms.RandomCrop(224),
-            transforms.ConvertImageDtype(torch.float32),
-            transforms.Normalize(mean=tuple(mean), std=tuple(std)),
-            # transforms.Normalize(0.5, 0.5)
-            transforms.RandomErasing(
-                p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False
-            ),
-        ]
-    )
-    train_dataset_new = FromSubsetDataset(
-        subset[i],
-        transform=train_transform,
-    )
-    trainloader.append(
-        DataLoader(
-            train_dataset_new,
-            batch_size=batch_size,
-            shuffle=True,
-            num_workers=0,
-            pin_memory=False,
-            worker_init_fn=seed_worker,
-            generator=g,
-        )
-    )
+trainloader = make_trainloader(subset, means, stds, batch_size, g)
 
 # make test_dataloader
 testloader = DataLoader(
@@ -413,6 +374,33 @@ if __name__ == "__main__":
             sat_epoch,
         )
 
+        # trainloaderの作り直し
+        current_indices = [[] for _ in range(n_node)]
+        for i in range(n_node):
+            indexes_non_diag_num = 0
+            suitable_num = 0
+            for j in range(n_node):
+                label_j_data_num = len(indexes[i][j])
+                if i != j:
+                    current_indices[i] += indexes[i][
+                        j
+                    ]  # current_indicesに少数派labelのデータを追加
+                    indexes_non_diag_num += label_j_data_num
+                    suitable_num = max(label_j_data_num, suitable_num)
+            adjusted_indexes_diag_num = max(
+                batch_size - indexes_non_diag_num, suitable_num
+            )  # ノードiのラベルiデータで使う数
+
+            for n in range(adjusted_indexes_diag_num):
+                rd_index = random.randint(0, len(indexes[i][i]) - 1)
+                current_indices[i].append(
+                    indexes[i][i][rd_index]
+                )  # current_indicesに多数派labelのデータを追加
+
+        current_subset = [Subset(train_data, current_indices[i]) for i in range(n_node)]
+        trainloader = make_trainloader(current_subset, means, stds, batch_size, g)
+        print(len(trainloader[0]))
+
         for n in range(n_node):
             nbr = contact[str(n)]
             if len(nbr) == 0:
@@ -534,6 +522,7 @@ if __name__ == "__main__":
         f.write(f"the std of the last 10 epoch: {std}\n")
         f.write(f"the maxmize of the last 10 epoch: {max_acc}\n")
         f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
-        f.write(f"Usage of previous memory: {former_exchange_num}\n")
+        if use_previous_memory:
+            f.write(f"Usage of previous memory: {former_exchange_num}\n")
     evaluate_history(historys, cur_dir)
     print("Finished Training")
