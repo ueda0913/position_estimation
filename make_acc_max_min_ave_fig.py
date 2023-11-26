@@ -7,7 +7,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 project_path = "../data-raid/static/WAFL_pos_estimation"
-dir_name = "2023-09-19-11"
+dir_name = "vit_wafl_raw_noniid"
 image_file_name = "node_avg"
 image_path = os.path.join(project_path, dir_name, "images")  # 出力先のFolder
 

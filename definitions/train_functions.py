@@ -171,6 +171,112 @@ def fit(
     return history
 
 
+def fit_eval_from_multiple_images(
+    net,
+    optimizer,
+    criterion,
+    train_loader,
+    test_loader,
+    device,
+    history,
+    cur_epoch,
+    cur_node,
+    eval_image_num,  # 何枚で1つの出力を出すか
+    n_node,
+    evaluate_only=False,
+):
+    n_train_acc, n_val_acc = 0, 0
+    train_loss, val_loss = 0, 0
+    n_train, n_test = 0, 0
+
+    if not evaluate_only:
+        net.train()
+        for inputs, labels in train_loader:
+            train_batch_size = len(labels)
+            n_train += train_batch_size
+            if inputs.device == "cpu":
+                inputs = inputs.to(device)
+                labels = labels.to(device)
+
+            optimizer.zero_grad()
+            outputs = net(inputs)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            predicted = torch.max(outputs, 1)[1]
+            train_loss += loss.item() * train_batch_size
+            n_train_acc += (predicted == labels).sum().item()
+
+    net.eval()
+    for inputs_test, labels_test in test_loader:
+        if inputs_test.device == "cpu":
+            inputs_test = inputs_test.to(device)
+            labels_test = labels_test.to(device)
+        outputs_test = net(inputs_test)
+
+        outputs_new, labels_new = mixture_multiple_data(
+            labels_test, outputs_test, eval_image_num, n_node, device
+        )
+        loss_test = criterion(outputs_new, labels_new)
+
+        processed_batch_size = len(labels_new)
+        n_test += processed_batch_size
+        predicted_test = torch.max(outputs_new, 1)[1]
+        val_loss += loss_test.item() * processed_batch_size
+        n_val_acc += (predicted_test == labels_new).sum().item()
+
+    if not evaluate_only:
+        train_acc = n_train_acc / n_train
+        avg_train_loss = train_loss / n_train
+    val_acc = n_val_acc / n_test
+    avg_val_loss = val_loss / n_test
+    print(
+        f"Epoch [{cur_epoch+1}], Node [{cur_node}], loss: {avg_train_loss:.5f} acc: {train_acc:.5f} val_loss: {avg_val_loss:.5f} val_acc: {val_acc:.5f}"
+    )
+    item = np.array([cur_epoch + 1, avg_train_loss, train_acc, avg_val_loss, val_acc])
+    history = np.vstack((history, item))
+    return history
+
+
+def mixture_multiple_data(
+    raw_labels, raw_outputs, eval_image_num, n_node, device
+):  # 同じラベルのデータの出力結果を合成する
+    processed_outputs = []
+    processed_labels = []
+    data_num = len(raw_labels)
+    label_index = [[] for _ in range(n_node)]  # このミニバッジ中の各ラベルデータのインデックス
+    for i in range(data_num):
+        label_index[raw_labels[i].item()].append(i)
+    for i in range(n_node):
+        if len(label_index[i]) == 0:
+            continue
+        if len(label_index[i]) <= eval_image_num:
+            tmp = torch.zeros(n_node).to(device)
+            for j in label_index[i]:
+                tmp += raw_outputs[j]
+            processed_outputs.append(tmp.clone())
+            processed_labels.append(i)
+        else:
+            current_label_index = 0
+            for _ in range(len(label_index[i]) // eval_image_num + 1):
+                tmp = torch.zeros(n_node).to(device)
+                for k in range(eval_image_num):
+                    if len(label_index[i]) > k + current_label_index:
+                        tmp += raw_outputs[label_index[i][k + current_label_index]]
+                        print(k + current_label_index)
+                    else:
+                        rp = random.randint(0, current_label_index - 1)
+                        tmp += raw_outputs[label_index[i][rp]]
+                        print(rp)
+                current_label_index += eval_image_num
+                processed_outputs.append(tmp.clone())
+                processed_labels.append(i)
+    processed_outputs_tensor = torch.stack(processed_outputs)
+    processed_labels_tensor = torch.tensor(processed_labels).to(device)
+    return processed_outputs_tensor, processed_labels_tensor
+
+
 def torch_seed(seed=123):
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)

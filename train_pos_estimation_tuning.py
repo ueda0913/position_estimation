@@ -1,17 +1,13 @@
-import copy
 import json
 import os
 import pickle
 import warnings
 from datetime import datetime
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from definitions.make_log import *
 from definitions.model_exchange import *
@@ -19,11 +15,8 @@ from definitions.mydataset import *
 from definitions.net import *
 from definitions.train_functions import *
 from definitions.visualize import *
-from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
-from torchinfo import summary
-from torchvision.datasets import ImageFolder
 
 warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
@@ -44,9 +37,9 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = "vit_wafl_raw_noniid"
+cur_time_index = "vit_wafl_raw_noniid"
 device = torch.device(
-    "cuda:0" if torch.cuda.is_available() else "cpu"
+    "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
 max_epoch = 3000
 pre_train_epoch = 150
@@ -55,21 +48,21 @@ n_node = 12
 n_middle = 256
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
 optimizer_name = "SGD"  # SGD or Adam
-lr = 0.05
+lr = 0.005
 momentum = 0.9
-pretrain_lr = 0.05
+pretrain_lr = 0.005
 pretrain_momentum = 0.9
 
 # cos similarity
 use_cos_similarity = False
-st_fl_coefficiency = 0.2  # 使わない場合の値
+st_fl_coefficiency = 0.1  # 使わない場合の値
 sat_epoch = 2500  # cos類似度を使わなくなるepoch
 
 # schedulers
-use_scheduler = True  # if do not use scheduler, False here
+use_scheduler = False  # if do not use scheduler, False here
 scheduler_step = 750
 scheduler_rate = 0.3
-use_pretrain_scheduler = True
+use_pretrain_scheduler = False
 pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
@@ -79,7 +72,7 @@ filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p10_s01.json"
+contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
@@ -261,59 +254,10 @@ if use_pretrain_scheduler:
 contact_list = []
 historys = [np.zeros((0, 5)) for i in range(n_node)]
 pre_train_historys = [np.zeros((0, 5)) for i in range(n_node)]
+
 if __name__ == "__main__":
-    if is_train_only:
-        with open(
-            os.path.join(project_path, load_time_index, "params", "historys_data.pkl"),
-            "rb",
-        ) as f:
-            historys = pickle.load(f)
-        for n in range(n_node):
-            nets[n].load_state_dict(
-                torch.load(
-                    os.path.join(
-                        project_path, f"{load_time_index}/params/Pre-train-node{n}.pth"
-                    )
-                )
-            )
-        cur_time_index = load_time_index
-        cur_dir = os.path.join(project_path, cur_time_index)
-        load_epoch = 0
-        print("Just training from pre-train result")
-        with open(os.path.join(cur_dir, "log.txt"), "a") as f:
-            f.write(
-                "train under the following conditions. confirm them to be same as that of pre-train\n"
-            )
-
-    elif is_restart:
-        with open(
-            os.path.join(project_path, load_time_index, "params", "historys_data.pkl"),
-            "rb",
-        ) as f:
-            historys = pickle.load(f)
-        if len(historys[0]) != load_epoch + 1:
-            print("error: do not load suitable file")
-            exit(1)
-        for n in range(n_node):
-            nets[n].load_state_dict(
-                torch.load(
-                    os.path.join(
-                        project_path,
-                        f"{load_time_index}/params/node{n}_epoch-{load_epoch:04d}.pth",
-                    )
-                )
-            )
-        cur_time_index = load_time_index
-        cur_dir = os.path.join(project_path, cur_time_index)
-        print(f"restart training from epoch{load_epoch+1}")
-        with open(os.path.join(cur_dir, "log.txt"), "a") as f:
-            f.write(
-                "restart training under the following conditions. confirm them to be same as that of pre-train\n"
-            )
-
-    else:
-        os.makedirs(cur_dir)
-        show_dataset_contents(data_dir, classes, cur_dir)
+    os.makedirs(cur_dir)
+    show_dataset_contents(data_dir, classes, cur_dir)
 
     initial_log(
         cur_dir,
@@ -337,42 +281,33 @@ if __name__ == "__main__":
         nets,
     )
 
-    if (not is_train_only) and (not is_restart):
-        os.makedirs(os.path.join(cur_dir, "params"))
-        load_epoch = 0
-        # pre-self training
-        pre_train(
-            nets,
-            trainloader,
-            testloader,
-            pretrain_optimizers,
-            criterion,
-            pre_train_epoch,
-            device,
-            cur_dir,
-            historys,
-            pre_train_historys,
-            pretrain_schedulers,
-        )
+    os.makedirs(os.path.join(cur_dir, "params"))
+    load_epoch = 0
+    # pre-self training
+    pre_train(
+        nets,
+        trainloader,
+        testloader,
+        pretrain_optimizers,
+        criterion,
+        pre_train_epoch,
+        device,
+        cur_dir,
+        historys,
+        pre_train_historys,
+        pretrain_schedulers,
+    )
 
-        history_save_path = os.path.join(cur_dir, "params", "historys_data.pkl")
-        with open(history_save_path, "wb") as f:
-            pickle.dump(historys, f)
-        print("saving historys...")
-        pre_train_history_save_path = os.path.join(
-            cur_dir, "params", "pre_train_historys_data.pkl"
-        )
-        with open(pre_train_history_save_path, "wb") as f:
-            pickle.dump(pre_train_historys, f)
-            print("saving pre_train historys...")
-
-        if is_pre_train_only:
-            mean, std = calc_res_mean_and_std(pre_train_historys)
-            with open(os.path.join(cur_dir, "log.txt"), "a") as f:
-                f.write(f"the average of the last 10 epoch: {mean}\n")
-                f.write(f"the std of the last 10 epoch: {std}\n")
-
-            exit(0)
+    history_save_path = os.path.join(cur_dir, "params", "historys_data.pkl")
+    with open(history_save_path, "wb") as f:
+        pickle.dump(historys, f)
+    print("saving historys...")
+    pre_train_history_save_path = os.path.join(
+        cur_dir, "params", "pre_train_historys_data.pkl"
+    )
+    with open(pre_train_history_save_path, "wb") as f:
+        pickle.dump(pre_train_historys, f)
+        print("saving pre_train historys...")
 
     # load contact pattern
     print(f"Loading ... {contact_file_path}")
@@ -442,21 +377,6 @@ if __name__ == "__main__":
                     n,
                 )
 
-            # make figs
-            if (
-                epoch > ((max_epoch + load_epoch) * 0.8) and epoch % 50 == 49
-            ) or epoch == max_epoch + load_epoch - 1:
-                train_for_cmls(
-                    cur_dir,
-                    epoch,
-                    n,
-                    classes,
-                    nets[n],
-                    criterion,
-                    testloader,
-                    device,
-                )
-
             # write log
             if epoch % 100 == 99 or epoch + 10 > max_epoch + load_epoch - 1:
                 with open(os.path.join(cur_dir, "log.txt"), "a") as f:
@@ -486,6 +406,17 @@ if __name__ == "__main__":
 
             # save models
             if epoch == max_epoch + load_epoch - 1:
+                # make_figs
+                train_for_cmls(
+                    cur_dir,
+                    epoch,
+                    n,
+                    classes,
+                    nets[n],
+                    criterion,
+                    testloader,
+                    device,
+                )
                 if os.path.exists(
                     os.path.join(cur_dir, f"params/node{n}_while_training.pth")
                 ):
@@ -536,5 +467,4 @@ if __name__ == "__main__":
         f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
         if use_previous_memory:
             f.write(f"Usage of previous memory: {former_exchange_num}\n")
-    evaluate_history(historys, cur_dir)
     print("Finished Training")

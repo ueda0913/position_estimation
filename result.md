@@ -204,7 +204,10 @@
 - scheduler(scheduler_step = 750,scheduler_rate = 0.3,pretrain_scheduler_step = 50,pretrain_scheduler_rate = 0.3)
 - contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 - filter:filter_rate = 70,filter_seed = 1
-- nohup.out
+- the average of the last 10 epoch: 0.7896193771626298
+- the std of the last 10 epoch: 0.009616868650476782
+- the maxmize of the last 10 epoch: 0.8062283737024222
+- the minimum of the last 10 epoch: 0.7716262975778547
 
 ## どれだけ過去パラが使われているのかの検証
 
@@ -214,3 +217,7 @@
 ## ieee用
 
 - vgg: gpu2(nohup.out), resnet:gpu1, mobilenet:gpu1
+
+## 調査用 (後で消す)
+
+- 過去パラメータのみ割合を増やすとどうなるか
