@@ -1,3 +1,4 @@
+import gc
 import json
 import os
 import pickle
@@ -5,6 +6,7 @@ import warnings
 from datetime import datetime
 
 import numpy as np
+import optuna
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -33,11 +35,8 @@ test_dir = os.path.join(data_dir, "val")
 meant_file_path = os.path.join(data_dir, "test_mean.pt")
 stdt_file_path = os.path.join(data_dir, "test_std.pt")
 
-
-### change area
-## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-cur_time_index = "vit_wafl_raw_noniid"
+# cur_time_index = "vit_wafl_raw_noniid"
 device = torch.device(
     "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -55,7 +54,6 @@ pretrain_momentum = 0.9
 
 # cos similarity
 use_cos_similarity = False
-st_fl_coefficiency = 0.1  # 使わない場合の値
 sat_epoch = 2500  # cos類似度を使わなくなるepoch
 
 # schedulers
@@ -77,17 +75,14 @@ contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
-## select train mode
+## 事前学習したモデルを必ず使用すること。そのディレクトリ名を記述
 use_previous_memory = False  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
-is_train_only = False  # use to load pre-trained data and start training from scratch
-is_restart = False  # use to load traied_data and add training
-load_time_index = (
-    None  # use when "is_train_only" or "is_restart" flag is valid. check situation
-)
-load_epoch = None  # use when "is_restart" flag is valid. how many epochs the model trained in the former training
+load_dir_name = "pre_train_p40_e150"
+load_epoch = 0  # use when "is_restart" flag is valid. how many epochs the model trained in the former training
 
-cur_dir = os.path.join(project_path, cur_time_index)
+base_cur_dir = os.path.join(project_path, cur_time_index)
+loading_dir = os.path.join(project_path, load_dir_name)
 contact_file_path = os.path.join(contact_pattern_dir, contact_file)
 
 torch_seed()
@@ -172,39 +167,7 @@ for i in range(n_node):
 
 
 # make train_data_loader
-trainloader = []
-for i in range(len(subset)):
-    mean = means[i]
-    mean = mean.tolist()
-    std = stds[i]
-    std = std.tolist()
-    train_transform = transforms.Compose(
-        [
-            transforms.RandomResizedCrop(size=224, scale=(0.4, 1.0)),
-            # transforms.RandomCrop(224),
-            transforms.ConvertImageDtype(torch.float32),
-            transforms.Normalize(mean=tuple(mean), std=tuple(std)),
-            # transforms.Normalize(0.5, 0.5)
-            transforms.RandomErasing(
-                p=0.5, scale=(0.02, 0.33), ratio=(0.3, 3.3), value=0, inplace=False
-            ),
-        ]
-    )
-    train_dataset_new = FromSubsetDataset(
-        subset[i],
-        transform=train_transform,
-    )
-    trainloader.append(
-        DataLoader(
-            train_dataset_new,
-            batch_size=batch_size,
-            shuffle=True,
-            num_workers=0,
-            pin_memory=False,
-            worker_init_fn=seed_worker,
-            generator=g,
-        )
-    )
+trainloader = make_trainloader(subset, means, stds, batch_size, g)
 
 # make test_dataloader
 testloader = DataLoader(
@@ -217,97 +180,65 @@ testloader = DataLoader(
     generator=g,
 )
 
-# define net, optimizer, criterion
-criterion = nn.CrossEntropyLoss()
 
-nets = [
-    select_net(model_name, len(classes), n_middle).to(device) for i in range(n_node)
-]
-optimizers = [
-    select_optimizer(model_name, nets[i], optimizer_name, lr, momentum)
-    for i in range(n_node)
-]
-pretrain_optimizers = [
-    select_optimizer(
-        model_name, nets[i], optimizer_name, pretrain_lr, pretrain_momentum
-    )
-    for i in range(n_node)
-]
+os.makedirs(base_cur_dir)
+show_dataset_contents(data_dir, classes, base_cur_dir)
+initial_log_for_tuning(
+    base_cur_dir,
+    subset,
+    batch_size,
+    contact_file,
+    is_use_noniid_filter,
+    filter_file,
+    testloader,
+    trainloader,
+    optimizer_name,
+    use_scheduler,
+    schedulers,
+    pretrain_schedulers,
+    use_pretrain_scheduler,
+    use_previous_memory,
+    use_cos_similarity,
+    model_name,
+    load_dir_name,
+)
 
-if use_scheduler:
-    schedulers = [
-        optim.lr_scheduler.StepLR(
-            optimizers[i], step_size=scheduler_step, gamma=scheduler_rate
-        )
-        for i in range(n_node)
-    ]
-if use_pretrain_scheduler:
-    pretrain_schedulers = [
-        optim.lr_scheduler.StepLR(
-            pretrain_optimizers[i],
-            step_size=pretrain_scheduler_step,
-            gamma=pretrain_scheduler_rate,
-        )
-        for i in range(n_node)
-    ]
 
-contact_list = []
-historys = [np.zeros((0, 5)) for i in range(n_node)]
-pre_train_historys = [np.zeros((0, 5)) for i in range(n_node)]
+def objective(trial):
+    # optunaによる最適化で動かすハイパーパラメータ
+    st_fl_coefficiency = trial.suggest_float("st_fl_coefficiency", 0.1, 0.5, log=True)
 
-if __name__ == "__main__":
-    os.makedirs(cur_dir)
-    show_dataset_contents(data_dir, classes, cur_dir)
-
-    initial_log(
-        cur_dir,
-        subset,
-        batch_size,
-        contact_file,
-        is_use_noniid_filter,
-        filter_file,
-        testloader,
-        trainloader,
-        optimizers,
-        use_scheduler,
-        schedulers,
-        pretrain_optimizers,
-        pretrain_schedulers,
-        use_pretrain_scheduler,
-        use_previous_memory,
-        use_cos_similarity,
-        st_fl_coefficiency,
-        is_pre_train_only,
-        nets,
-    )
-
-    os.makedirs(os.path.join(cur_dir, "params"))
+    # define net, optimizer, criterion
+    criterion = nn.CrossEntropyLoss()
     load_epoch = 0
-    # pre-self training
-    pre_train(
-        nets,
-        trainloader,
-        testloader,
-        pretrain_optimizers,
-        criterion,
-        pre_train_epoch,
-        device,
-        cur_dir,
-        historys,
-        pre_train_historys,
-        pretrain_schedulers,
-    )
 
-    history_save_path = os.path.join(cur_dir, "params", "historys_data.pkl")
-    with open(history_save_path, "wb") as f:
-        pickle.dump(historys, f)
-    print("saving historys...")
-    pre_train_history_save_path = os.path.join(
-        cur_dir, "params", "pre_train_historys_data.pkl"
-    )
-    with open(pre_train_history_save_path, "wb") as f:
-        pickle.dump(pre_train_historys, f)
-        print("saving pre_train historys...")
+    with open(
+        os.path.join(loading_dir, "params", "historys_data.pkl"),
+        "rb",
+    ) as f:
+        historys = pickle.load(f)
+
+    nets = [
+        select_net(model_name, len(classes), n_middle).to(device) for i in range(n_node)
+    ]
+    for n in range(n_node):
+        nets[n].load_state_dict(
+            torch.load(os.path.join(loading_dir, "params", f"Pre-train-node{n}.pth"))
+        )
+
+    optimizers = [
+        select_optimizer(model_name, nets[i], optimizer_name, lr, momentum)
+        for i in range(n_node)
+    ]
+
+    if use_scheduler:
+        schedulers = [
+            optim.lr_scheduler.StepLR(
+                optimizers[i], step_size=scheduler_step, gamma=scheduler_rate
+            )
+            for i in range(n_node)
+        ]
+    contact_list = []
 
     # load contact pattern
     print(f"Loading ... {contact_file_path}")
@@ -361,9 +292,6 @@ if __name__ == "__main__":
                     ]
                 )
                 historys[n] = np.vstack((historys[n], item))
-                print(
-                    f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}"
-                )
             else:
                 historys[n] = fit(
                     nets[n],
@@ -376,95 +304,39 @@ if __name__ == "__main__":
                     epoch,
                     n,
                 )
-
-            # write log
-            if epoch % 100 == 99 or epoch + 10 > max_epoch + load_epoch - 1:
-                with open(os.path.join(cur_dir, "log.txt"), "a") as f:
-                    f.write(
-                        f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}\n"
-                    )
-
-            # save histories
-            if epoch % 500 == 499:
-                history_save_path = os.path.join(cur_dir, "params", "historys_data.pkl")
-                with open(history_save_path, "wb") as f:
-                    pickle.dump(historys, f)
-                    print("saving historys...")
-
-                torch.save(
-                    nets[n].state_dict(),
-                    os.path.join(cur_dir, f"params/node{n}_while_training.pth"),
+            if epoch % 100 == 99 or max_epoch - epoch < 10:
+                print(
+                    f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}"
                 )
-                torch.save(
-                    optimizers[n].state_dict(),
-                    os.path.join(
-                        cur_dir, f"params/node{n}_optimizer_while_training.pth"
-                    ),
-                )
-                print(f"Model saving ... at {epoch+1}")
-                nets[n] = nets[n].to(device)
-
-            # save models
-            if epoch == max_epoch + load_epoch - 1:
-                # make_figs
-                train_for_cmls(
-                    cur_dir,
-                    epoch,
-                    n,
-                    classes,
-                    nets[n],
-                    criterion,
-                    testloader,
-                    device,
-                )
-                if os.path.exists(
-                    os.path.join(cur_dir, f"params/node{n}_while_training.pth")
-                ):
-                    os.remove(
-                        os.path.join(cur_dir, f"params/node{n}_while_training.pth")
-                    )
-                if os.path.exists(
-                    os.path.join(
-                        cur_dir, f"params/node{n}_optimizer_while_training.pth"
-                    )
-                ):
-                    os.remove(
-                        os.path.join(
-                            cur_dir, f"params/node{n}_optimizer_while_training.pth"
-                        )
-                    )
-
-                print(f"Model saving ... at {epoch+1}")
-                torch.save(
-                    nets[n].state_dict(),
-                    os.path.join(cur_dir, f"params/node{n}_epoch-{epoch+1:04d}.pth"),
-                )
-                nets[n] = nets[n].to(device)
-                torch.save(
-                    optimizers[n].state_dict(),
-                    os.path.join(
-                        cur_dir, f"params/node{n}_optimizer_epoch-{epoch+1:04d}.pth"
-                    ),
-                )
-                if use_previous_memory:
-                    print(
-                        f"former exchange: {former_exchange_num}"
-                    )  # to confirm how many times exchange with former one
 
             # update scheduler
             if schedulers != None:
                 schedulers[n].step()
-
-    history_save_path = os.path.join(cur_dir, "params", "historys_data.pkl")
-    with open(history_save_path, "wb") as f:
-        pickle.dump(historys, f)
-        print("saving historys...")
+    # save logs
     mean, std, max_acc, min_acc = calc_res_mean_and_std(historys)
-    with open(os.path.join(cur_dir, "log.txt"), "a") as f:
+    with open(os.path.join(base_cur_dir, "log.txt"), "a") as f:
+        f.write(f"--------------\nfl_coefficiency={st_fl_coefficiency}\n")
         f.write(f"the average of the last 10 epoch: {mean}\n")
         f.write(f"the std of the last 10 epoch: {std}\n")
         f.write(f"the maxmize of the last 10 epoch: {max_acc}\n")
         f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
         if use_previous_memory:
             f.write(f"Usage of previous memory: {former_exchange_num}\n")
-    print("Finished Training")
+    return mean
+
+
+study_name = f"study-database"
+storage = f"sqlite:///{base_cur_dir}/log.db"
+for i in range(20):
+    study = optuna.create_study(
+        direction="maximize",
+        study_name=study_name,
+        storage=storage,
+        load_if_exists=True,
+    )
+    study.optimize(objective, n_trials=10)
+    best_trial = study.best_trial.number
+    current_trial = 10 * (i + 1) - 1
+    if i == 0:  # 最初のセットではabs(past_best_score - current_best_score)が0になるため回避
+        past_best_score = study.best_trial.value
+        current_best_score = 0

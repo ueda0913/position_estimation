@@ -46,7 +46,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
 # cur_time_index = "vit_wafl_raw_noniid"
 device = torch.device(
-    "cuda:0" if torch.cuda.is_available() else "cpu"
+    "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
 max_epoch = 3000
 pre_train_epoch = 150
@@ -62,7 +62,7 @@ pretrain_momentum = 0.9
 
 # cos similarity
 use_cos_similarity = False
-st_fl_coefficiency = 0.2  # 使わない場合の値
+st_fl_coefficiency = 0.9  # 使わない場合の値
 sat_epoch = 2500  # cos類似度を使わなくなるepoch
 
 # schedulers
@@ -74,7 +74,7 @@ pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = True
+is_use_noniid_filter = False
 filter_rate = 70
 filter_seed = 1
 
@@ -426,9 +426,6 @@ if __name__ == "__main__":
                     ]
                 )
                 historys[n] = np.vstack((historys[n], item))
-                print(
-                    f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}"
-                )
             else:
                 historys[n] = fit(
                     nets[n],
@@ -441,6 +438,9 @@ if __name__ == "__main__":
                     epoch,
                     n,
                 )
+            print(
+                f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}"
+            )
 
             # make figs
             if (

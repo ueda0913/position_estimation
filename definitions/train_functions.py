@@ -163,9 +163,6 @@ def fit(
         avg_train_loss = train_loss / n_train
     val_acc = n_val_acc / n_test
     avg_val_loss = val_loss / n_test
-    print(
-        f"Epoch [{cur_epoch+1}], Node [{cur_node}], loss: {avg_train_loss:.5f} acc: {train_acc:.5f} val_loss: {avg_val_loss:.5f} val_acc: {val_acc:.5f}"
-    )
     item = np.array([cur_epoch + 1, avg_train_loss, train_acc, avg_val_loss, val_acc])
     history = np.vstack((history, item))
     return history
@@ -254,7 +251,7 @@ def mixture_multiple_data(
         if len(label_index[i]) <= eval_image_num:
             tmp = torch.zeros(n_node).to(device)
             for j in label_index[i]:
-                tmp += raw_outputs[j]
+                tmp += raw_outputs[j]  # 複数の出力結果を合成
             processed_outputs.append(tmp.clone())
             processed_labels.append(i)
         else:
@@ -263,11 +260,13 @@ def mixture_multiple_data(
                 tmp = torch.zeros(n_node).to(device)
                 for k in range(eval_image_num):
                     if len(label_index[i]) > k + current_label_index:
-                        tmp += raw_outputs[label_index[i][k + current_label_index]]
+                        tmp += raw_outputs[
+                            label_index[i][k + current_label_index]
+                        ]  # 複数の出力結果を合成
                         print(k + current_label_index)
                     else:
                         rp = random.randint(0, current_label_index - 1)
-                        tmp += raw_outputs[label_index[i][rp]]
+                        tmp += raw_outputs[label_index[i][rp]]  # 複数の出力結果を合成
                         print(rp)
                 current_label_index += eval_image_num
                 processed_outputs.append(tmp.clone())
