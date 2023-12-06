@@ -387,6 +387,9 @@ if __name__ == "__main__":
         former_exchange_num = [
             0 for _ in range(n_node)
         ]  # how many times exchange with former one
+        avg_former_exchange_num = [
+            0 for _ in range(n_node)
+        ]  # how many times exchange with former one
 
     for epoch in range(
         load_epoch, max_epoch + load_epoch
@@ -394,13 +397,14 @@ if __name__ == "__main__":
         contact = contact_list[epoch]
         # below row are used to use previous memory(now only for vit)
         if use_previous_memory:
-            model_exchange_with_former(
+            model_exchange_with_former2(
                 former_contact,
                 contact,
                 former_nets,
                 nets,
                 counters,
                 former_exchange_num,
+                avg_former_exchange_num,
                 model_name,
             )
         model_exchange(
@@ -516,14 +520,16 @@ if __name__ == "__main__":
                     ),
                 )
                 if use_previous_memory:
-                    print(
-                        f"former exchange: {former_exchange_num}"
-                    )  # to confirm how many times exchange with former one
-
+                    avg_former_exchange_num[n] = (
+                        avg_former_exchange_num[n] / former_exchange_num[n]
+                    )
             # update scheduler
             if schedulers != None:
                 schedulers[n].step()
 
+    print(
+        f"Avg times former exchange: {avg_former_exchange_num}"
+    )  # to confirm how many times exchange with former one
     history_save_path = os.path.join(cur_dir, "params", "historys_data.pkl")
     with open(history_save_path, "wb") as f:
         pickle.dump(historys, f)
@@ -535,6 +541,6 @@ if __name__ == "__main__":
         f.write(f"the maxmize of the last 10 epoch: {max_acc}\n")
         f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
         if use_previous_memory:
-            f.write(f"Usage of previous memory: {former_exchange_num}\n")
+            f.write(f"Average time of previous memory: {avg_former_exchange_num}\n")
     evaluate_history(historys, cur_dir)
     print("Finished Training")

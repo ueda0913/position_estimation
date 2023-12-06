@@ -250,6 +250,47 @@ def model_exchange(
         update_nets_mobile(nets, contact, st_fl_coefficiency)
 
 
+def model_exchange_with_former2(
+    former_contact,
+    contact,
+    former_nets,
+    nets,
+    counters,
+    former_exchange_num,
+    avg_former_exchange_num,
+    model_name,
+):
+    # countersはcontact_patternの変更から何epochだけ経過したか
+    # former_netsにはcontact_patternが変化した時の変化前のnetsが入る
+    for n in range(len(contact)):
+        if model_name == "vit_b16":
+            current_net = nets[n].heads.state_dict()
+        elif model_name == "vgg19_bn":
+            current_net = nets[n].classifier[6].state_dict()
+        elif model_name == "resnet_152":
+            current_net = nets[n].fc.state_dict()
+        elif model_name == "mobilenet_v2":
+            current_net = nets[n].classifier[1].state_dict()
+
+        if former_contact[str(n)] != contact[str(n)]:
+            former_contact[str(n)] = contact[str(n)]
+            former_nets[n] = copy.deepcopy(current_net)
+            avg_former_exchange_num[n] += counters[n]
+            counters[n] = 0
+            former_exchange_num[n] += 1
+
+        ratio = 0.01 * counters[n]
+        if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
+            ratio = 0.1
+        for key in former_nets[n]:
+            current_net[key] = (
+                current_net[key] * (1 - ratio) + former_nets[n][key] * ratio
+            )
+        nets[n].heads.load_state_dict(current_net)
+
+        counters[n] += 1
+
+
 def model_exchange_with_former(
     former_contact,
     contact,
