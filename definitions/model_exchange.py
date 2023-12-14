@@ -1,4 +1,5 @@
 import copy
+import math
 
 import torch
 import torch.nn as nn
@@ -250,7 +251,7 @@ def model_exchange(
         update_nets_mobile(nets, contact, st_fl_coefficiency)
 
 
-def model_exchange_with_former2(
+def model_exchange_with_former(
     former_contact,
     contact,
     former_nets,
@@ -279,60 +280,18 @@ def model_exchange_with_former2(
             counters[n] = 0
             former_exchange_num[n] += 1
 
-        ratio = 0.01 * counters[n]
+        # ratio = 0.01 * counters[n]
         if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
             ratio = 0.1
+        else:
+            d_x = (math.log(0.2) - math.log(0.1)) / 10
+            x = math.log(0.1) + d_x * counters[n]
+            ratio = math.pow(math.e, x) - 0.1
+
         for key in former_nets[n]:
             current_net[key] = (
                 current_net[key] * (1 - ratio) + former_nets[n][key] * ratio
             )
         nets[n].heads.load_state_dict(current_net)
-
-        counters[n] += 1
-
-
-def model_exchange_with_former(
-    former_contact,
-    contact,
-    former_nets,
-    nets,
-    counters,
-    former_exchange_num,
-    model_name,
-):
-    # countersはcontact_patternの変更から何epochだけ経過したか
-    # former_netsにはcontact_patternが変化した時の変化前のnetsが入る
-    for n in range(len(contact)):
-        if former_contact[str(n)] != contact[str(n)]:
-            former_contact[str(n)] = contact[str(n)]
-            if model_name == "vit_b16":
-                former_nets[n] = nets[n].heads.state_dict()
-            elif model_name == "vgg19_bn":
-                former_nets[n] = nets[n].classifier[6].state_dict()
-            elif model_name == "resnet_152":
-                former_nets[n] = nets[n].fc.state_dict()
-            elif model_name == "mobilenet_v2":
-                former_nets[n] = nets[n].classifier[1].state_dict()
-            counters[n] = 0
-
-        if model_name == "vit_b16":
-            current_net = nets[n].heads.state_dict()
-        elif model_name == "vgg19_bn":
-            current_net = nets[n].classifier[6].state_dict()
-        elif model_name == "resnet_152":
-            current_net = nets[n].fc.state_dict()
-        elif model_name == "mobilenet_v2":
-            current_net = nets[n].classifier[1].state_dict()
-
-        ratio = 0.01 * counters[n]
-        if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
-            ratio = 0.1
-        for key in former_nets[n]:
-            current_net[key] = (
-                current_net[key] * (1 - ratio) + former_nets[n][key] * ratio
-            )
-        nets[n].heads.load_state_dict(current_net)
-        if ratio != 0:
-            former_exchange_num[n] += 1
 
         counters[n] += 1

@@ -11,11 +11,11 @@ from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader
 
 ## change area
-epoch = 3000
+epoch = 4000
 node = 1
 batch_size = 16
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
-load_dir_name = "2023-09-19-10"
+load_dir_name = "2023-12-07-18"
 n_middle = 256
 file_name = "no_title"
 criterion = torch.nn.CrossEntropyLoss()
