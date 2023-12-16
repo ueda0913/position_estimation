@@ -45,8 +45,7 @@ def initial_log(
             f.write(f"pre-training sheduler gamma: {pretrain_schedulers[0].gamma}\n")
         f.write(f"use previous memory: {use_previous_memory}\n")
         f.write(f"use cosine similarity: {use_cos_similarity}\n")
-        if not use_cos_similarity:
-            f.write(f"fl_coefficiency: {st_fl_coefficiency}\n")
+        f.write(f"fl_coefficiency: {st_fl_coefficiency}\n")
         f.write(f"pre_train_only: {is_pre_train_only}\n")
         f.write(f"net:\n {summary(nets[0], (1,3,224,224), verbose=False)}\n")
 
