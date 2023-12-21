@@ -148,9 +148,9 @@ def update_nets_vit(
             if use_cos_similarity:
                 # TODOこの与え方とかも考えないと不味そう
                 # とりあえず最初はcos類似度に対し線形に変化し、その変化が徐々に小さくなるようにしていく
-                print(
-                    f"epoch{epoch}, node{n}(local model. The pair of this node is node-{contact[str(n)][k]})"
-                )
+                # print(
+                #     f"epoch{epoch}, node{n}(local model. The pair of this node is node-{contact[str(n)][k]})"
+                # )
                 # print(
                 #     f"epoch{epoch}, node{contact[str(n)][k]}(recv model. The pair of this node is node{n}):{recv_models[n][k]}"
                 # )
@@ -264,6 +264,8 @@ def model_exchange_with_former(
     former_exchange_num,
     avg_former_exchange_num,
     model_name,
+    use_cos_similarity_previous_memory,
+    st_fl_coefficiency_pm,
 ):
     # countersはcontact_patternの変更から何epochだけ経過したか
     # former_netsにはcontact_patternが変化した時の変化前のnetsが入る
@@ -284,13 +286,23 @@ def model_exchange_with_former(
             counters[n] = 0
             former_exchange_num[n] += 1
 
-        # ratio = 0.01 * counters[n]
+        # 連続交換回数による変動
         if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
-            ratio = 0.1
+            ratio = st_fl_coefficiency_pm
+        # elif counters[n] <= 5:
+        #     ratio = 0
         else:
-            d_x = (math.log(0.2) - math.log(0.1)) / 10
-            x = math.log(0.1) + d_x * counters[n]
-            ratio = math.pow(math.e, x) - 0.1
+            d_x = (
+                math.log(st_fl_coefficiency_pm * 2) - math.log(st_fl_coefficiency_pm)
+            ) / 10
+            x = math.log(st_fl_coefficiency_pm) + d_x * counters[n]
+            ratio = math.pow(math.e, x) - st_fl_coefficiency_pm
+
+        # 類似度による変動
+        if use_cos_similarity_previous_memory:
+            cos_sim_pm = calc_cos_similarity(current_net, former_nets[n])
+            if cos_sim_pm > 0.8:
+                ratio = 0
 
         for key in former_nets[n]:
             current_net[key] = (

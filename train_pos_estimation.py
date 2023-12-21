@@ -44,9 +44,9 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-cur_time_index = "2023-12-16-14"
+# cur_time_index = "2023-12-17-11"
 device = torch.device(
-    "cuda:0" if torch.cuda.is_available() else "cpu"
+    "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
 max_epoch = 4000
 pre_train_epoch = 150
@@ -61,9 +61,11 @@ pretrain_lr = 0.05
 pretrain_momentum = 0.9
 
 # cos similarity
-use_cos_similarity = True
+use_cos_similarity = False
 st_fl_coefficiency = 1.0  # 使わない場合の値
 sat_epoch = 4000  # cos類似度を使わなくなるepoch
+use_cos_similarity_previous_memory = False
+st_fl_coefficiency_pm = 0.1
 
 # schedulers
 use_scheduler = True  # if do not use scheduler, False here
@@ -79,13 +81,13 @@ filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p10_s01.json"
+contact_file = "rwp_n12_a0500_r100_p40_s01.json"
 # contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
 
 ## select train mode
-use_previous_memory = False  # use the past memory
+use_previous_memory = True  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
 is_train_only = False  # use to load pre-trained data and start training from scratch
 is_restart = False  # use to load traied_data and add training
@@ -406,6 +408,8 @@ if __name__ == "__main__":
                 former_exchange_num,
                 avg_former_exchange_num,
                 model_name,
+                use_cos_similarity_previous_memory,
+                st_fl_coefficiency_pm,
             )
         model_exchange(
             nets,
