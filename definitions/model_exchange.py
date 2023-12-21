@@ -148,18 +148,13 @@ def update_nets_vit(
             if use_cos_similarity:
                 # TODOこの与え方とかも考えないと不味そう
                 # とりあえず最初はcos類似度に対し線形に変化し、その変化が徐々に小さくなるようにしていく
-                # print(
-                #     f"epoch{epoch}, node{n}(local model. The pair of this node is node-{contact[str(n)][k]})"
-                # )
-                # print(
-                #     f"epoch{epoch}, node{contact[str(n)][k]}(recv model. The pair of this node is node{n}):{recv_models[n][k]}"
-                # )
                 cos_similarity = calc_cos_similarity(local_model[n], recv_models[n][k])
-                # epoch_rate = float(sat_epoch - epoch) / sat_epoch
-                # fl_coefficiency = 0.3 * epoch_rate * (cos_similarity + 1) / 2 + 0.15 * (
-                #     1 - epoch_rate
-                # )
-                fl_coefficiency = st_fl_coefficiency * (cos_similarity + 1) / 2
+                epoch_rate = float(sat_epoch - epoch) / sat_epoch
+                delta_fl = epoch_rate * st_fl_coefficiency
+                fl_coefficiency = delta_fl * cos_similarity + (
+                    st_fl_coefficiency - delta_fl
+                )
+                # fl_coefficiency = st_fl_coefficiency * (cos_similarity + 1) / 2
                 if epoch % 500 == 499:
                     print(
                         f"cos_similarity between node-{n} and node-{contact[str(n)][k]} in epoch{epoch}: {cos_similarity}\n"
