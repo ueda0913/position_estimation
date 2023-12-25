@@ -21,6 +21,9 @@ def initial_log(
     use_previous_memory,
     use_cos_similarity,
     st_fl_coefficiency,
+    sat_epoch,
+    use_cos_similarity_previous_memory,
+    st_fl_coefficiency_pm,
     is_pre_train_only,
     nets,
 ):
@@ -43,9 +46,16 @@ def initial_log(
         if use_pretrain_scheduler:
             f.write(f"pre-training sheduler step: {pretrain_schedulers[0].step_size}\n")
             f.write(f"pre-training sheduler gamma: {pretrain_schedulers[0].gamma}\n")
-        f.write(f"use previous memory: {use_previous_memory}\n")
-        f.write(f"use cosine similarity: {use_cos_similarity}\n")
         f.write(f"fl_coefficiency: {st_fl_coefficiency}\n")
+        f.write(f"use previous memory: {use_previous_memory}\n")
+        if use_previous_memory:
+            f.write(f"fl_coefficiency_pm: {st_fl_coefficiency_pm}\n")
+        f.write(f"use cosine similarity: {use_cos_similarity}\n")
+        if use_cos_similarity:
+            f.write(f"sat_epoch: {sat_epoch}\n")
+        f.write(f"use cosine similarity_pm: {use_cos_similarity_previous_memory}\n")
+        if use_cos_similarity_previous_memory:
+            f.write(f"sat_epoch_pm: {sat_epoch}\n")
         f.write(f"pre_train_only: {is_pre_train_only}\n")
         f.write(f"net:\n {summary(nets[0], (1,3,224,224), verbose=False)}\n")
 
