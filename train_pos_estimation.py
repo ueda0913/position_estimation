@@ -44,7 +44,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = "2023-12-25-13"
+cur_time_index = "2023-12-28-02"
 device = torch.device(
     "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2

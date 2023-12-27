@@ -151,7 +151,7 @@ def update_nets_vit(
                 cos_similarity = calc_cos_similarity(local_model[n], recv_models[n][k])
                 epoch_rate = float(sat_epoch - epoch) / sat_epoch
                 delta_fl = epoch_rate * st_fl_coefficiency
-                fl_coefficiency = delta_fl * cos_similarity + (
+                fl_coefficiency = delta_fl * (cos_similarity + 1) / 2 + (
                     st_fl_coefficiency - delta_fl
                 )
                 # fl_coefficiency = st_fl_coefficiency * (cos_similarity + 1) / 2
