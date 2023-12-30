@@ -137,14 +137,13 @@ def update_nets_vit(
         ]
         # update_model = copy.deepcopy(recv_models[n])
         n_nbr = len(update_model)  # how many nodes n-th node contacted
+        fl_coefficiencies = []
 
         # put difference of n-th node models and k-th conducted node to n-th into update_model[k]
         for k in range(n_nbr):
             for key in update_model[k]:
                 update_model[k][key] = recv_models[n][k][key] - local_model[n][key]
 
-        # mix to local model
-        for k in range(n_nbr):
             if use_cos_similarity:
                 # TODOこの与え方とかも考えないと不味そう
                 # とりあえず最初はcos類似度に対し線形に変化し、その変化が徐々に小さくなるようにしていく
@@ -161,18 +160,29 @@ def update_nets_vit(
                     )
             else:
                 fl_coefficiency = st_fl_coefficiency
+            fl_coefficiencies.append(fl_coefficiency)
 
+        for k in range(n_nbr):
+            fl_coefficiencies[k] = (
+                fl_coefficiencies[k]
+                / sum(fl_coefficiencies)
+                * st_fl_coefficiency
+                * n_nbr
+            )
+
+        # mix to local model
+        for k in range(n_nbr):
             for key in update_model[k]:
                 if local_model[n][key].dtype is torch.float32:
                     local_model[n][key] += (
-                        update_model[k][key] * fl_coefficiency / float(n_nbr + 1)
+                        update_model[k][key] * fl_coefficiencies[k] / float(n_nbr + 1)
                     )
                 elif local_model[n][key].dtype is torch.int64:
                     pass
                 else:
                     print(
                         key,
-                        type(fl_coefficiency),
+                        type(fl_coefficiencies[k]),
                         type(n_nbr),
                         local_model[n][key].dtype,
                         update_model[k][key].dtype,
