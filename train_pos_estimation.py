@@ -44,7 +44,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-cur_time_index = "2023-12-28-02"
+cur_time_index = "2024-01-08-10"
 device = torch.device(
     "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -76,12 +76,12 @@ pretrain_scheduler_step = 50
 pretrain_scheduler_rate = 0.3
 
 ## about the data each node have
-is_use_noniid_filter = True
+is_use_noniid_filter = False
 filter_rate = 70
 filter_seed = 1
 
 ## about contact patterns
-contact_file = "rwp_n12_a0500_r100_p40_s01.json"
+contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 # contact_file = "static_line_n12.json"
 # contact_file=f'cse_n10_c10_b02_tt05_tp2_s01.json'
 # contact_file = 'meet_at_once_t10000.json'
@@ -396,6 +396,8 @@ if __name__ == "__main__":
             0 for _ in range(n_node)
         ]  # how many times exchange with former one
 
+    cos_sim_counter = [[0, 0] for _ in range(n_node)]
+
     for epoch in range(
         load_epoch, max_epoch + load_epoch
     ):  # loop over the dataset multiple times
@@ -414,14 +416,25 @@ if __name__ == "__main__":
                 use_cos_similarity_previous_memory,
                 st_fl_coefficiency_pm,
             )
-        model_exchange(
+        # model_exchange(
+        #     nets,
+        #     model_name,
+        #     contact,
+        #     use_cos_similarity,
+        #     st_fl_coefficiency,
+        #     epoch,
+        #     sat_epoch,
+        # )
+        model_exchange2(
             nets,
-            model_name,
             contact,
             use_cos_similarity,
             st_fl_coefficiency,
             epoch,
             sat_epoch,
+            trainloader,
+            historys,
+            cos_sim_counter,
         )
 
         for n in range(n_node):
@@ -447,7 +460,6 @@ if __name__ == "__main__":
                     device,
                     historys[n],
                     epoch,
-                    n,
                 )
             print(
                 f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}"
@@ -455,8 +467,8 @@ if __name__ == "__main__":
 
             # make figs
             if (
-                epoch > ((max_epoch + load_epoch) * 0.8) and epoch % 50 == 49
-            ) or epoch == max_epoch + load_epoch - 1:
+                epoch > ((max_epoch + load_epoch) * 0.7) and epoch % 100 == 99
+            ) or epoch + 10 > max_epoch + load_epoch - 1:
                 train_for_cmls(
                     cur_dir,
                     epoch,
@@ -549,5 +561,7 @@ if __name__ == "__main__":
         f.write(f"the minimum of the last 10 epoch: {min_acc}\n")
         if use_previous_memory:
             f.write(f"Average time of previous memory: {avg_former_exchange_num}\n")
+        if use_cos_similarity:
+            f.write(f"cos_sim aggregation rate: {cos_sim_counter}\n")
     evaluate_history(historys, cur_dir)
     print("Finished Training")
