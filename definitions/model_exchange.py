@@ -431,28 +431,30 @@ def model_exchange_with_former(
             counters[n] = 0
             former_exchange_num[n] += 1
 
-        # 連続交換回数による変動
-        if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
-            ratio = st_fl_coefficiency_pm
-        # elif counters[n] <= 5:
-        #     ratio = 0
-        else:
-            d_x = (
-                math.log(st_fl_coefficiency_pm * 2) - math.log(st_fl_coefficiency_pm)
-            ) / 10
-            x = math.log(st_fl_coefficiency_pm) + d_x * counters[n]
-            ratio = math.pow(math.e, x) - st_fl_coefficiency_pm
+        if len(contact[str(n)]) > 0:
+            # 連続交換回数による変動
+            if counters[n] >= 10:  # この閾値と重み0.1は変更の余地あり
+                ratio = st_fl_coefficiency_pm
+            # elif counters[n] <= 5:
+            #     ratio = 0
+            else:
+                d_x = (
+                    math.log(st_fl_coefficiency_pm * 2)
+                    - math.log(st_fl_coefficiency_pm)
+                ) / 10
+                x = math.log(st_fl_coefficiency_pm) + d_x * counters[n]
+                ratio = math.pow(math.e, x) - st_fl_coefficiency_pm
 
-        # 類似度による変動
-        if use_cos_similarity_previous_memory:
-            cos_sim_pm = calc_cos_similarity(current_net, former_nets[n])
-            if cos_sim_pm > 0.8:
-                ratio = 0
+            # 類似度による変動
+            if use_cos_similarity_previous_memory:
+                cos_sim_pm = calc_cos_similarity(current_net, former_nets[n])
+                if cos_sim_pm > 0.8:
+                    ratio = 0
 
-        for key in former_nets[n]:
-            current_net[key] = (
-                current_net[key] * (1 - ratio) + former_nets[n][key] * ratio
-            )
-        nets[n].heads.load_state_dict(current_net)
+            for key in former_nets[n]:
+                current_net[key] = (
+                    current_net[key] * (1 - ratio) + former_nets[n][key] * ratio
+                )
+            nets[n].heads.load_state_dict(current_net)
 
-        counters[n] += 1
+            counters[n] += 1
