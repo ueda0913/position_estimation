@@ -177,7 +177,6 @@ def fit_eval_from_multiple_images(
     device,
     history,
     cur_epoch,
-    cur_node,
     eval_image_num,  # 何枚で1つの出力を出すか
     n_node,
     evaluate_only=False,
@@ -228,9 +227,6 @@ def fit_eval_from_multiple_images(
         avg_train_loss = train_loss / n_train
     val_acc = n_val_acc / n_test
     avg_val_loss = val_loss / n_test
-    print(
-        f"Epoch [{cur_epoch+1}], Node [{cur_node}], loss: {avg_train_loss:.5f} acc: {train_acc:.5f} val_loss: {avg_val_loss:.5f} val_acc: {val_acc:.5f}"
-    )
     item = np.array([cur_epoch + 1, avg_train_loss, train_acc, avg_val_loss, val_acc])
     history = np.vstack((history, item))
     return history
@@ -263,11 +259,11 @@ def mixture_multiple_data(
                         tmp += raw_outputs[
                             label_index[i][k + current_label_index]
                         ]  # 複数の出力結果を合成
-                        print(k + current_label_index)
+                        # print(k + current_label_index)
                     else:
                         rp = random.randint(0, current_label_index - 1)
                         tmp += raw_outputs[label_index[i][rp]]  # 複数の出力結果を合成
-                        print(rp)
+                        # print(rp)
                 current_label_index += eval_image_num
                 processed_outputs.append(tmp.clone())
                 processed_labels.append(i)
