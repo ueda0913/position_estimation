@@ -117,7 +117,6 @@ def fit(
     device,
     history,
     cur_epoch,
-    cur_node,
     evaluate_only=False,
 ):
     n_train_acc, n_val_acc = 0, 0
