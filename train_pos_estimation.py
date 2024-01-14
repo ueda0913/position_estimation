@@ -30,7 +30,8 @@ warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
 
 # path
 data_dir = "../data-raid/data/position_estimation_dataset"
-# data_dir = "../data-raid/data/UTokyoE_building_dataset"
+# data_dir = "../data-raid/data/position_estimation_dataset_room"
+# project_path = "../data-raid/static/WAFL_pos_estimation_room"
 project_path = "../data-raid/static/WAFL_pos_estimation"
 noniid_filter_dir = os.path.join(data_dir, "noniid_filter")
 contact_pattern_dir = "../data-raid/static/contact_pattern"
@@ -44,7 +45,7 @@ stdt_file_path = os.path.join(data_dir, "test_std.pt")
 ### change area
 ## about training conditions
 cur_time_index = datetime.now().strftime("%Y-%m-%d-%H")
-# cur_time_index = "2024-01-10-12"
+cur_time_index = "2024-01-15-02"
 device = torch.device(
     "cuda:0" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2
@@ -64,7 +65,7 @@ pretrain_momentum = 0.9
 use_cos_similarity = False
 st_fl_coefficiency = 1.0  # 使わない場合の値
 sat_epoch = 1000  # cos類似度を使わなくなるepoch
-use_cos_similarity_previous_memory = True
+use_cos_similarity_previous_memory = False
 st_fl_coefficiency_pm = 0.1
 
 # schedulers
@@ -87,7 +88,7 @@ contact_file = "rwp_n12_a0500_r100_p10_s01.json"
 # contact_file = 'meet_at_once_t10000.json'
 
 ## select train mode
-use_previous_memory = True  # use the past memory
+use_previous_memory = False  # use the past memory
 is_pre_train_only = False  # use to do only pre-training
 is_train_only = False  # use to load pre-trained data and start training from scratch
 is_restart = False  # use to load traied_data and add training
@@ -402,9 +403,6 @@ if __name__ == "__main__":
         load_epoch, max_epoch + load_epoch
     ):  # loop over the dataset multiple times
         contact = contact_list[epoch]
-        print(
-            f"contact:{contact},\n former_contact:{former_contact},\n former_exchange_num:{former_exchange_num},\n avg_former_exchange_num:{avg_former_exchange_num}"
-        )
         # below row are used to use previous memory(now only for vit)
         if use_previous_memory:
             model_exchange_with_former(
@@ -454,7 +452,17 @@ if __name__ == "__main__":
                 )
                 historys[n] = np.vstack((historys[n], item))
             else:
-                historys[n] = fit(
+                # historys[n] = fit(
+                #     nets[n],
+                #     optimizers[n],
+                #     criterion,
+                #     trainloader[n],
+                #     testloader,
+                #     device,
+                #     historys[n],
+                #     epoch,
+                # )
+                historys[n] = fit_eval_from_multiple_images(
                     nets[n],
                     optimizers[n],
                     criterion,
@@ -463,6 +471,8 @@ if __name__ == "__main__":
                     device,
                     historys[n],
                     epoch,
+                    2,
+                    n_node,
                 )
             print(
                 f"Epoch [{epoch+1}], Node [{n}], loss: {historys[n][-1][1]:.5f} acc: {historys[n][-1][2]:.5f} val_loss: {historys[n][-1][3]:.5f} val_acc: {historys[n][-1][4]:.5f}"
