@@ -7,7 +7,7 @@ import pickle
 import matplotlib.pyplot as plt
 
 project_path = "../data-raid/static/WAFL_pos_estimation"
-dir_name = "vit_wafl_raw_noniid"
+dir_name = "vit_wafl_raw_iid"
 image_file_name = "node_avg"
 image_path = os.path.join(project_path, dir_name, "images")  # 出力先のFolder
 
@@ -57,4 +57,4 @@ plt.ylabel("Accuracy")
 plt.xlim([-100, 3100])
 plt.ylim([0.1, 0.9])
 plt.legend()
-plt.savefig(os.path.join(image_path, f"{image_file_name}_acc.png"), bbox_inches="tight")
+# plt.savefig(os.path.join(image_path, f"{image_file_name}_acc.png"), bbox_inches="tight")

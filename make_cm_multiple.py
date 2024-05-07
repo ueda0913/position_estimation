@@ -1,5 +1,6 @@
 import itertools
 import os
+import sys
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,12 +14,12 @@ from torch.utils.data import DataLoader
 
 ## change area
 epoch = 4000
-node = 2
+node = int(sys.argv[1])
 batch_size = 16
 n_node = 12
-eval_image_num = 3
+eval_image_num = int(sys.argv[2])
 model_name = "vit_b16"  # vgg19_bn or mobilenet_v2 or resnet_152 or vit_b16
-load_dir_name = "2024-01-06-01"
+load_dir_name = "2024-01-08-13"
 n_middle = 256
 file_name = "no_title"
 criterion = torch.nn.CrossEntropyLoss()
@@ -84,7 +85,7 @@ meant_file_path = os.path.join(data_dir, "test_mean.pt")
 stdt_file_path = os.path.join(data_dir, "test_std.pt")
 mean_t = torch.load(meant_file_path)
 std_t = torch.load(stdt_file_path)
-print("loading of mean and std in test data finished")
+# print("loading of mean and std in test data finished")
 
 pre_transform = transforms.Resize(256)
 test_transform = transforms.Compose(
@@ -134,6 +135,9 @@ for inputs_test, labels_test in test_loader:
     processed_batch_size = len(labels_new)
     n_test += processed_batch_size
     predicted_test = torch.max(outputs_new, 1)[1]
+    y_preds.extend(predicted_test.tolist())
+    y_tests.extend(labels_new.tolist())
+    y_outputs.extend(outputs_test.tolist())
     val_loss += loss_test.item() * processed_batch_size
     n_val_acc += (predicted_test == labels_new).sum().item()
 
@@ -143,15 +147,17 @@ if not (os.path.exists(normalized_cm_dir_path)) or os.path.isfile(
 ):
     os.makedirs(normalized_cm_dir_path)
 confusion_mtx = confusion_matrix(y_tests, y_preds)
-print("Saving confusion matrix...")
-save_confusion_matrix(
-    confusion_mtx,
-    classes=classes,
-    normalize=True,
-    title=f"Normalized Confusion Matrix at {epoch+1:d}epoch (node{node})",
-    cmap=plt.cm.Reds,
-    save_path=os.path.join(
-        cur_dir,
-        f"images/normalized_confusion_matrix/{file_name}-node{node}_mul_image.png",
-    ),
-)
+# print("Saving confusion matrix...")
+# save_confusion_matrix(
+#     confusion_mtx,
+#     classes=classes,
+#     normalize=True,
+#     title=f"Normalized Confusion Matrix at {epoch+1:d}epoch (node{node})",
+#     cmap=plt.cm.Reds,
+#     save_path=os.path.join(
+#         cur_dir,
+#         f"images/normalized_confusion_matrix/{file_name}-node{node}_mul_image{eval_image_num}.png",
+#     ),
+# )
+# print(f"acc: {n_val_acc/n_test}")
+print(n_val_acc / n_test)
