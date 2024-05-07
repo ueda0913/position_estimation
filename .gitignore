@@ -2,10 +2,3 @@ nohup*
 __pycache__
 log*
 test*
-*.md
-sample_image_for_thesis.py
-make_sample_images.py
-make_model_comp_fig.py
-make_cm_multiple.py
-make_acc_max_min_ave_fig.py
-calc_multiple_acc.sh
