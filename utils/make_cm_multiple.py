@@ -2,6 +2,8 @@ import itertools
 import os
 import sys
 
+sys.path.append('..')
+
 import matplotlib.pyplot as plt
 import numpy as np
 import torch
@@ -74,8 +76,8 @@ def save_confusion_matrix(
 
 
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
-project_path = "../data-raid/static/WAFL_pos_estimation"
-data_dir = "../data-raid/data/position_estimation_dataset"
+project_path = "../../data-raid/static/WAFL_pos_estimation"
+data_dir = "../../data-raid/data/position_estimation_dataset"
 train_dir = os.path.join(data_dir, "train")
 test_dir = os.path.join(data_dir, "val")
 cur_dir = os.path.join(project_path, load_dir_name)

@@ -1,14 +1,9 @@
 import os
 
 import matplotlib.pyplot as plt
-import numpy as np
-import torch
-import torch.nn as nn
-import torchvision.datasets as datasets
-import torchvision.transforms as transforms
 from PIL import Image
 
-data_dir = "../data-raid/data/position_estimation_dataset"
+data_dir = "../../data-raid/data/position_estimation_dataset"
 train_dir = os.path.join(data_dir, "train")
 img_for_thesis_dir = os.path.join(data_dir, "samples")
 n_node = 12

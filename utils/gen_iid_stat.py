@@ -1,15 +1,17 @@
 # IIDデータセットの平均と分散を求める
 import os
+import sys
+
+sys.path.append('..')
 
 import torch
 from definitions.mydataset import *
 from definitions.train_functions import *
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
-from torchvision.datasets import ImageFolder
 
 # Data path
-data_dir = "../data-raid/data/position_estimation_dataset"
+data_dir = "../../data-raid/data/position_estimation_dataset"
 classes = ("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11")
 train_dir = os.path.join(data_dir, "train")
 # 保存先
@@ -97,5 +99,5 @@ for i in range(n_node):
 
 print(means)
 print(stds)
-torch.save(means, mean_file)
-torch.save(stds, std_file)
+# torch.save(means, mean_file)
+# torch.save(stds, std_file)

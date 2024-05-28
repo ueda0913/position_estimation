@@ -1,12 +1,10 @@
 # 12個のノードの精度の平均値、最後に最大最小のノードの推移
-
-import csv
 import os
 import pickle
 
 import matplotlib.pyplot as plt
 
-project_path = "../data-raid/static/WAFL_pos_estimation"
+project_path = "../../data-raid/static/WAFL_pos_estimation"
 dir_name = "vit_wafl_raw_iid"
 image_file_name = "node_avg"
 image_path = os.path.join(project_path, dir_name, "images")  # 出力先のFolder

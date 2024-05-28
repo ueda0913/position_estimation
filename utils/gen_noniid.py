@@ -1,9 +1,10 @@
 import os
 import random
+import sys
+
+sys.path.append('..')
 
 import torch
-import torchvision
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from definitions.mydataset import *
 from definitions.train_functions import *
@@ -12,7 +13,7 @@ from torch.utils.data.dataset import Subset
 batch_size = 16
 n_node = 12
 ratio = 70  # the rate that n-th node has n-labeled picture
-data_dir = "../data-raid/data/position_estimation_dataset"
+data_dir = "../../data-raid/data/position_estimation_dataset"
 device = torch.device(
     "cuda:1" if torch.cuda.is_available() else "cpu"
 )  # use 0 in GPU1 use 1 in GPU2

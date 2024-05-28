@@ -2,13 +2,12 @@
 # 10個のノードの精度の平均値の推移
 # modelは{vgg19_bn, resnet_152, mobilenet_v2, vit_b16}
 
-import csv
 import os
 import pickle
 
 import matplotlib.pyplot as plt
 
-project_path = "../data-raid/static/WAFL_pos_estimation"
+project_path = "../../data-raid/static/WAFL_pos_estimation"
 vgg_dir_name = "vgg_wafl_raw_iid_line"
 resnet_dir_name = "resnet_wafl_raw_iid_line"
 mobilenet_dir_name = "mobile_wafl_raw_iid_line"

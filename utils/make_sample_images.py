@@ -1,17 +1,19 @@
 import os
+import sys
+
+sys.path.append('..')
 
 import torch
-import torch.nn as nn
 import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from definitions.mydataset import MyGPUdataset
 from definitions.net import select_net
 from definitions.visualize import show_image_labels
 from torch.utils.data import DataLoader
-from torchvision import models
-from train_pos_estimation import data_dir, n_middle, n_node, project_path
+from train_pos_estimation import n_middle, n_node, project_path
 
 ###change area
+data_dir = "../../data-raid/data/position_estimation_dataset"
 epoch = 3000
 static_date_index = "vit_wafl_raw_iid_ringstar"  # trained epoch to load
 batch_size = 16

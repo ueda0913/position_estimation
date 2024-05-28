@@ -31,6 +31,6 @@ for t in range(n_time):
 import json
 
 with open(
-    f"../data-raid/static/contact_pattern/meet_at_once_t{n_time:03d}.json", "w"
+    f"../../data-raid/static/contact_pattern/meet_at_once_t{n_time:03d}.json", "w"
 ) as f:
     json.dump(contact_list, f, indent=4)
