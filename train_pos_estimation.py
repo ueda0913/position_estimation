@@ -1,17 +1,13 @@
-import copy
 import json
 import os
 import pickle
 import warnings
 from datetime import datetime
 
-import matplotlib.pyplot as plt
 import numpy as np
 import torch
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-import torchvision.datasets as datasets
 import torchvision.transforms as transforms
 from definitions.make_log import *
 from definitions.model_exchange import *
@@ -19,11 +15,8 @@ from definitions.mydataset import *
 from definitions.net import *
 from definitions.train_functions import *
 from definitions.visualize import *
-from sklearn.metrics import confusion_matrix
 from torch.utils.data import DataLoader
 from torch.utils.data.dataset import Subset
-from torchinfo import summary
-from torchvision.datasets import ImageFolder
 
 warnings.simplefilter("ignore")
 warnings.filterwarnings("ignore", message=".*The 'nopython' keyword.*")
